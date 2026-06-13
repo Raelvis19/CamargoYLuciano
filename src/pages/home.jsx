@@ -76,4 +76,3 @@ function Home() {
 }
 
 export default Home;
-"Comentario"
