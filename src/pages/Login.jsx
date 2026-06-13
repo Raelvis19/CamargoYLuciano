@@ -7,7 +7,8 @@ import "../Login.css";
 
 function Login() {
   const navigate = useNavigate();
-
+    console.log("SUPABASE_URL:", import.meta.env.VITE_SUPABASE_URL);
+    console.log("SUPABASE_KEY:", import.meta.env.VITE_SUPABASE_ANON_KEY);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
