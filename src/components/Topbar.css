@@ -97,3 +97,33 @@
   background: #121212;
   color: white;
 }
+
+.menu-toggle {
+  display: none;
+
+  border: none;
+  background: transparent;
+
+  font-size: 28px;
+
+  cursor: pointer;
+
+  margin-right: 15px;
+}
+
+@media (max-width: 768px) {
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .search-box {
+    flex: 1;
+  }
+
+  /* Ocultamos elementos secundarios en móviles */
+  .fecha,
+  .user-info {
+    display: none;
+  }
+}

@@ -16,7 +16,7 @@ import "./Sidebar.css";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
-function Sidebar() {
+function Sidebar({ isOpen, onClose }) {
   const menuItems = [
     { to: "/home", icon: <FiHome />, text: "Dashboard" },
     { to: "/registrar-paciente", icon: <FiUserPlus />, text: "Registrar paciente" },
@@ -38,7 +38,7 @@ function Sidebar() {
     }
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-header">
         <img src={logo} alt="UCNE" className="sidebar-logo" />
         <h4>UCNE</h4>
@@ -49,6 +49,7 @@ function Sidebar() {
           <NavLink
             key={item.to}
             to={item.to}
+            onClick={onClose}
             className={({ isActive }) =>
               isActive ? "menu-item active" : "menu-item"
             }
@@ -60,7 +61,7 @@ function Sidebar() {
       </nav>
 
       <div className="sidebar-footer" >
-        <button className="logout-btn" onClick={cerrarSesion}>
+        <button className="logout-btn" onClick={async () => { onClose?.(); await cerrarSesion(); }}>
           <FiLogOut />
           <span>Cerrar sesión</span>
         </button>

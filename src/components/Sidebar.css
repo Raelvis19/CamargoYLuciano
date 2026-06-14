@@ -106,3 +106,21 @@
 .logout-btn:hover svg {
   color: #d62828;
 }
+
+/* ========================= */
+/* Responsive para móviles   */
+/* ========================= */
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -270px; /* oculto */
+    z-index: 1000;
+    transition: left 0.3s ease;
+  }
+
+  .sidebar.open {
+    left: 0; /* visible */
+  }
+}

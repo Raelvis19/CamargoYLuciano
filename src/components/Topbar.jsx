@@ -5,11 +5,12 @@ import {
   FiSun,
   FiMoon,
   FiUser,
+  FiMenu,
 } from "react-icons/fi";
 
 import "./Topbar.css";
 
-function Topbar({ user }) {
+function Topbar({ user, onMenuClick }) {
   const [darkMode, setDarkMode] = useState(false);
   const [fechaHora, setFechaHora] = useState("");
 
@@ -43,6 +44,12 @@ function Topbar({ user }) {
 
   return (
     <header className="topbar">
+        <button
+        className="menu-toggle"
+        onClick={onMenuClick}
+        >
+            <FiMenu />
+        </button>
 
       <div className="search-box">
         <FiSearch />

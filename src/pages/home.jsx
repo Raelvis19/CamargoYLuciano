@@ -9,6 +9,7 @@ import AlertasCard from "../components/AlertasCard";
 
 function Home() {
     const [user, setUser] = useState(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         supabase.auth.getUser().then(({ data }) => {
@@ -32,7 +33,10 @@ function Home() {
                 background: "#f5f7fb",
             }}
         >
-            <Sidebar />
+           <Sidebar
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+            />
 
             <div
                 style={{
@@ -41,7 +45,10 @@ function Home() {
                     flexDirection: "column",
                 }}
             >
-                <Topbar user={user} />
+                <Topbar
+                    user={user}
+                    onMenuClick={() => setSidebarOpen(true)}
+                />
                 <main className="container-fluid py-4 px-4">
 
                     <div className="mb-4">
