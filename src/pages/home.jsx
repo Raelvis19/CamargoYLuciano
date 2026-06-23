@@ -7,6 +7,7 @@ import StatsCards from "../components/StatsCards";
 import PacientesTable from "../components/PacientesTable";
 import AlertasCard from "../components/AlertasCard";
 
+
 function Home() {
     const [user, setUser] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
