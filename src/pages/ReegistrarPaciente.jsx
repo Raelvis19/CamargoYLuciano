@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
+import { registrarPaciente } from "../services/RegistrarPacienteService"; //Importacion del servicio de la Base de datos
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -93,13 +94,46 @@ function RegistrarPaciente() {
     });
   }
 
+  //Se agrego  cada campo para que al guardar y llame a handleSubmit registre el paciente
   async function handleSubmit(e) {
     e.preventDefault();
 
-    // Más adelante aquí insertaremos en Supabase
-    console.log(form);
+   try {
+     await registrarPaciente({
+       nombre: form.nombre,
+       matricula: form.matricula,
+       cedula: form.cedula,
+       fecha_nacimiento: form.fechaNacimiento,
+       sexo: form.sexo,
+       tipo_sangre: form.tipoSangre,
 
-    alert("Paciente registrado correctamente.");
+       telefono: form.telefono,
+       correo: form.correo,
+       carrera: form.carrera,
+       direccion: form.direccion,
+
+       motivo_consulta: form.motivoConsulta,
+       alergias: form.alergias,
+       enfermedades_preexistentes: form.enfermedades,
+       medicamentos_actuales: form.medicamentos,
+       prioridad: form.prioridad,
+       observaciones_medicas: form.observaciones,
+
+       contacto_nombre: form.contactoEmergencia,
+       contacto_parentesco: form.parentesco,
+       contacto_telefono: form.telefonoEmergencia,
+       contacto_correo: form.correoEmergencia,
+       contacto_observaciones: form.observacionesEmergencia,
+     });
+
+     alert("Paciente registrado correctamente.");
+
+     limpiarFormulario();
+   } catch (error) {
+     console.error(error);
+
+     alert("Error al registrar el paciente.");
+   }
   }
 
   return (
