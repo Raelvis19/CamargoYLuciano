@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
+import { buscarPacientes } from "../services/BuscarPacientesService";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -30,25 +31,22 @@ export default function BuscarPaciente() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleSearch = async () => {
-    setLoading(true);
+const handleSearch = async () => {
+  setLoading(true);
 
-    setTimeout(() => {
-      const mockData = [
-        { id: 1, nombre: "Juan Perez", cedula: "001-1234567-8", edad: 30, estado: "En espera", prioridad: "Alta" },
-        { id: 2, nombre: "Ana Lopez", cedula: "002-9876543-2", edad: 25, estado: "Consulta", prioridad: "Media" },
-        { id: 3, nombre: "Carlos Gómez", cedula: "003-5555555-5", edad: 40, estado: "Atendido", prioridad: "Baja" },
-      ];
+  setSelectedPatient(null);
 
-      const filtered = mockData.filter(p =>
-        p.nombre.toLowerCase().includes(query.toLowerCase()) ||
-        p.cedula.includes(query)
-      );
+  try {
+    const data = await buscarPacientes(query);
 
-      setPatients(filtered);
-      setLoading(false);
-    }, 800);
-  };
+    setPatients(data);
+  } catch (error) {
+    console.error(error);
+    alert("Error al buscar pacientes.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div
@@ -70,7 +68,6 @@ export default function BuscarPaciente() {
         <Topbar user={user} />
 
         <main className="container-fluid py-4 px-4">
-          
           {/* Encabezado */}
           <div className="mb-4">
             <h2 className="fw-bold">Buscar paciente</h2>
@@ -93,12 +90,13 @@ export default function BuscarPaciente() {
 
           {/* Tabla envuelta en otra tarjeta limpia */}
           <div className="card border-0 shadow-sm">
-            <div className="card-body p-0"> {/* p-0 para que la tabla toque los bordes si lo prefieres */}
+            <div className="card-body p-0">
+              {" "}
+              {/* p-0 para que la tabla toque los bordes si lo prefieres */}
               <ResultsTable
                 patients={patients}
                 onSelectPatient={setSelectedPatient}
               />
-              
               {patients.length === 0 && !loading && (
                 <div className="p-4 text-center">
                   <PatientEmptyState />
@@ -112,7 +110,6 @@ export default function BuscarPaciente() {
               <PatientDetail patient={selectedPatient} />
             </div>
           )}
-
         </main>
       </div>
     </div>
