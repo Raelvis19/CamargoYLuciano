@@ -7,6 +7,8 @@ import RegistrarPaciente from "./pages/ReegistrarPaciente";
 import BuscarPaciente from "./pages/BuscarPaciente";
 import ConsultarHistorial from "./pages/ConsultarHistorial";
 import AtencionMedica from "./pages/AtencionMedica";
+import Prioridades from "./pages/Prioridades";  
+import Recetas from "./pages/Recetas";          
 
 function App() {
   return (
@@ -27,9 +29,18 @@ function App() {
           path="/historial"
           element={<ConsultarHistorial />}
         />
-          <Route
+        <Route
           path="/atencion"
           element={<AtencionMedica />}
+        />
+        
+        <Route
+          path="/prioridades"
+          element={<Prioridades />}
+        />
+        <Route
+          path="/recetas"
+          element={<Recetas />}
         />
       </Routes>
     </BrowserRouter>
