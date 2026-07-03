@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
 import { buscarPacientes } from "../services/BuscarPacientesService";
+import { eliminarPaciente } from "../services/EliminarPacienteService";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -31,22 +32,41 @@ export default function BuscarPaciente() {
     return () => subscription.unsubscribe();
   }, []);
 
-const handleSearch = async () => {
-  setLoading(true);
+  const handleSearch = async () => {
+    setLoading(true);
 
-  setSelectedPatient(null);
+    setSelectedPatient(null);
 
-  try {
-    const data = await buscarPacientes(query);
+    try {
+      const data = await buscarPacientes(query);
 
-    setPatients(data);
-  } catch (error) {
-    console.error(error);
-    alert("Error al buscar pacientes.");
-  } finally {
-    setLoading(false);
+      setPatients(data);
+    } catch (error) {
+      console.error(error);
+      alert("Error al buscar pacientes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  async function handleDelete(patient) {
+    const confirmar = window.confirm(`¿Desea eliminar a ${patient.nombre}?`);
+
+    if (!confirmar) return;
+
+    try {
+      await eliminarPaciente(patient.id);
+
+      alert("Paciente eliminado correctamente.");
+
+      handleSearch();
+
+      setSelectedPatient(null);
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
   }
-};
 
   return (
     <div
@@ -96,6 +116,7 @@ const handleSearch = async () => {
               <ResultsTable
                 patients={patients}
                 onSelectPatient={setSelectedPatient}
+                onDelete={handleDelete}
               />
               {patients.length === 0 && !loading && (
                 <div className="p-4 text-center">
@@ -107,7 +128,10 @@ const handleSearch = async () => {
 
           {selectedPatient && (
             <div className="mt-4">
-              <PatientDetail patient={selectedPatient} />
+              <PatientDetail
+                patient={selectedPatient}
+                onUpdate={handleSearch}
+              />
             </div>
           )}
         </main>

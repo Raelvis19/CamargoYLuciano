@@ -12,3 +12,17 @@ export async function registrarPaciente(paciente) {
 
   return data;
 }
+
+export async function actualizarPaciente(id, paciente) {
+  const { data, error } = await supabase
+    .from("registrar_paciente")
+    .update(paciente)
+    .eq("id", id)
+    .select();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}

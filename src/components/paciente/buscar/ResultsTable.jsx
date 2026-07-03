@@ -1,4 +1,4 @@
-export default function ResultsTable({ patients, onSelectPatient }) {
+export default function ResultsTable({ patients, onSelectPatient,onDelete}) {
   if (!patients || patients.length === 0) return null;
 
   const getBadgeClass = (prioridad) => {
@@ -53,10 +53,17 @@ export default function ResultsTable({ patients, onSelectPatient }) {
 
               <td className="py-3 px-4">
                 <button
-                  className="btn btn-sm btn-outline-primary"
+                  className="btn btn-sm btn-outline-primary me-2"
                   onClick={() => onSelectPatient(p)}
                 >
                   Ver detalles
+                </button>
+
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  onClick={() => onDelete(p)}
+                >
+                  Eliminar
                 </button>
               </td>
             </tr>
