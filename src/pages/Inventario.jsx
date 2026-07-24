@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
-import { FiPlusCircle, FiEdit } from "react-icons/fi";
+import { FiPlusCircle, FiEdit, FiTrash2 } from "react-icons/fi";
 
 import Sidebar from "../components/Sidebar";
 
@@ -8,7 +8,7 @@ import Topbar from "../components/Topbar";
 
 import AgregarInventarioModal from "../components/AgregarInventarioModal"; 
 
-import { obtenerInventario, registrarMedicamento, actualizarMedicamento } from "../services/InventarioService";
+import { obtenerInventario, registrarMedicamento, actualizarMedicamento, eliminarMedicamentoLogico } from "../services/InventarioService";
 
 function Inventario() {
   const [user, setUser] = useState(null);
@@ -100,6 +100,28 @@ function Inventario() {
     setShowModal(true);
   };
 
+  const handleEliminarMedicamento = async () => {
+    if (selectedMedIndex === null) {
+      alert("Por favor, seleccione un medicamento de la tabla haciendo clic sobre él.");
+      return;
+    }
+
+    const medicamentoSeleccionado = medicamentos[selectedMedIndex];
+    
+    
+    if (window.confirm(`¿Está seguro que desea eliminar ${medicamentoSeleccionado.nombre}?`)) {
+      try {
+        await eliminarMedicamentoLogico(medicamentoSeleccionado.id);
+        alert("Medicamento eliminado correctamente.");
+        setSelectedMedIndex(null);
+        fetchMedicamentos(); 
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+        alert("Hubo un problema al eliminar el medicamento.");
+      }
+    }
+  };
+
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fb" }}>
       <Sidebar />
@@ -139,6 +161,18 @@ function Inventario() {
                   }}
                 >
                   <FiEdit size={20} /> Modificar {selectedMedIndex !== null && "(Seleccionado)"}
+                </button>
+
+                <button 
+                  onClick={handleEliminarMedicamento}
+                  className="btn d-flex align-items-center gap-2 px-4 py-2 shadow-sm"
+                  style={{ 
+                    backgroundColor: "#ffebee", 
+                    color: "#c62828", 
+                    borderRadius: "12px", border: "none", fontWeight: "600" 
+                  }}
+                >
+                  <FiTrash2 size={20} /> Eliminar {selectedMedIndex !== null && "(Seleccionado)"}
                 </button>
               </div>
             </div>
