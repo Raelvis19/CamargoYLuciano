@@ -192,6 +192,8 @@ function Inventario() {
 
                       <th className="py-3 px-4 border-bottom-0 text-center">Cantidad</th>
 
+                      <th className="py-3 px-4 border-bottom-0 text-center">Punto de reorden</th>
+
                       <th className="py-3 px-4 border-bottom-0">Fecha vencimiento</th>
 
                       <th className="py-3 px-4 border-bottom-0 rounded-end">Estado</th>
@@ -200,9 +202,9 @@ function Inventario() {
 
                   <tbody>
                     {loading ? (
-                      <tr><td colSpan="5" className="text-center py-4">Conectando con Supabase...</td></tr>
+                      <tr><td colSpan="6" className="text-center py-4">Conectando con Supabase...</td></tr>
                     ) : medicamentos.length === 0 ? (
-                      <tr><td colSpan="5" className="text-center py-4">No hay medicamentos en el inventario.</td></tr>
+                      <tr><td colSpan="6" className="text-center py-4">No hay medicamentos en el inventario.</td></tr>
                     ) : (
                       medicamentos.map((med, index) => (
                         <tr 
@@ -222,6 +224,11 @@ function Inventario() {
                             {med.nombre}</td>
                           <td className="py-3 px-4 text-center">
                             {med.cantidad}</td>
+
+                          <td className="py-3 px-4 text-center">
+                            {med.punto_reorden}
+                          </td>
+
                           <td className="py-3 px-4">
                             {med.fecha_vencimiento || med.fechaVencimiento || "Sin fecha"}
                           </td>
@@ -230,7 +237,12 @@ function Inventario() {
                               <span 
                                 style={{ 
                                   width: "10px", height: "10px", 
-                                  backgroundColor: med.estado === "Stock normal" ? "#4caf50" : "#ffb74d", 
+                                  backgroundColor:
+                                    med.estado === "Stock normal"
+                                      ? "#4caf50"
+                                      : med.estado === "Reorden"
+                                      ? "#ff9800"
+                                      : "#f44336", 
                                   borderRadius: "50%", display: "inline-block"
                                 }}
                               ></span>

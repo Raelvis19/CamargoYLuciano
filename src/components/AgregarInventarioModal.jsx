@@ -3,23 +3,18 @@ import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 
 export default function AgregarInventarioModal({ show, handleClose, onGuardar, medicamentoEditar }) {
   const [codigo, setCodigo] = useState("");
-
   const [nombre, setNombre] = useState("");
-
   const [cantidad, setCantidad] = useState("");
-
   const [fechaVencimiento, setFechaVencimiento] = useState("");
-
+  const [puntoReorden, setPuntoReorden] = useState("");
   
   useEffect(() => {
     if (medicamentoEditar) {
       setCodigo(medicamentoEditar.codigo || "");
-
       setNombre(medicamentoEditar.nombre || "");
-
       setCantidad(medicamentoEditar.cantidad || "");
-
       setFechaVencimiento(medicamentoEditar.fecha_vencimiento || medicamentoEditar.fechaVencimiento || "");
+      setPuntoReorden(medicamentoEditar?.punto_reorden || "");
     } else {
       
       setCodigo("");
@@ -29,12 +24,15 @@ export default function AgregarInventarioModal({ show, handleClose, onGuardar, m
       setCantidad("");
 
       setFechaVencimiento("");
+      setPuntoReorden("");
     }
   }, [medicamentoEditar, show]);
 
   const handleSubmit = () => {
-    if (!nombre || !codigo || !cantidad) {
-      alert("Por favor complete los campos obligatorios (Codigo, Nombre y Cantidad).");
+    if (!nombre || !codigo || !cantidad || !puntoReorden) {
+      alert(
+        "Por favor complete los campos obligatorios (Codigo, Nombre, Cantidad y Punto de reorden).",
+      );
       return;
     }
 
@@ -42,8 +40,14 @@ export default function AgregarInventarioModal({ show, handleClose, onGuardar, m
       codigo,
       nombre,
       cantidad: parseInt(cantidad),
+      punto_reorden: parseInt(puntoReorden),
       fecha_vencimiento: fechaVencimiento || null,
-      estado: parseInt(cantidad) <= 3 ? "A punto de agotarse" : "Stock normal"
+      estado:
+        parseInt(cantidad) < parseInt(puntoReorden)
+          ? "A punto de agotarse"
+          : parseInt(cantidad) === parseInt(puntoReorden)
+            ? "Reorden"
+            : "Stock normal",
     };
 
     
@@ -58,7 +62,11 @@ export default function AgregarInventarioModal({ show, handleClose, onGuardar, m
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>{medicamentoEditar ? "Modificar Medicamento" : "Agregar al Inventario"}</Modal.Title>
+        <Modal.Title>
+          {medicamentoEditar
+            ? "Modificar Medicamento"
+            : "Agregar al Inventario"}
+        </Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
@@ -72,6 +80,7 @@ export default function AgregarInventarioModal({ show, handleClose, onGuardar, m
                   placeholder="Ej. 0100450"
                   value={codigo}
                   onChange={(e) => setCodigo(e.target.value)}
+                  disabled={!!medicamentoEditar}
                 />
               </Form.Group>
             </Col>
@@ -100,6 +109,17 @@ export default function AgregarInventarioModal({ show, handleClose, onGuardar, m
                   value={cantidad}
                   onChange={(e) => setCantidad(e.target.value)}
                 />
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Punto de reorden *</Form.Label>
+                  <Form.Control
+                    type="number"
+                    min="0"
+                    placeholder="Ej. 10"
+                    value={puntoReorden}
+                    onChange={(e) => setPuntoReorden(e.target.value)}
+                  />
+                </Form.Group>
               </Form.Group>
             </Col>
 
