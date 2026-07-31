@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase/supabaseClient";
 import { buscarPacientes } from "../services/BuscarPacientesService";
-import { guardarReceta } from "../services/RecetasService";
+import { guardarReceta, obtenerRecetas, eliminarReceta } from "../services/RecetasService";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -16,9 +16,9 @@ const MEDICAMENTOS_MOCK = [
 function Recetas() {
   const [user, setUser] = useState(null);
 
-  const [busquedaPaciente, setBusquedaPaciente]     = useState("");
-  const [mostrarResultados, setMostrarResultados]   = useState(false);
-  const [resultadosPacientes, setResultadosPacientes] = useState([]); 
+  const [busquedaPaciente, setBusquedaPaciente]         = useState("");
+  const [mostrarResultados, setMostrarResultados]       = useState(false);
+  const [resultadosPacientes, setResultadosPacientes]   = useState([]);
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null);
   const buscadorRef = useRef(null);
 
@@ -28,6 +28,12 @@ function Recetas() {
   const [guardando, setGuardando]                   = useState(false);
 
   const [medicamentosReceta, setMedicamentosReceta] = useState([]);
+
+  // ── Historial de recetas por paciente ─────────────────────────────────
+  const [recetas, setRecetas]                 = useState([]);
+  const [loadingRecetas, setLoadingRecetas]   = useState(true);
+  const [recetaExpandida, setRecetaExpandida] = useState(null);
+  const [filtroPaciente, setFiltroPaciente]   = useState("");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -53,6 +59,55 @@ function Recetas() {
     document.addEventListener("mousedown", handleClickFuera);
     return () => document.removeEventListener("mousedown", handleClickFuera);
   }, []);
+
+  // Carga el historial al montar y se actualiza en tiempo real con Supabase Realtime
+  useEffect(() => {
+    async function cargarRecetas() {
+      try {
+        setLoadingRecetas(true);
+        setRecetas(await obtenerRecetas());
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingRecetas(false);
+      }
+    }
+
+    cargarRecetas();
+
+    const canal = supabase
+      .channel("recetas-cambios")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "recetas" },
+        () => cargarRecetas()
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "recetas" },
+        () => cargarRecetas()
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(canal);
+  }, []);
+
+  async function handleEliminarReceta(id) {
+    if (!window.confirm("¿Desea eliminar esta receta?")) return;
+    try {
+      await eliminarReceta(id);
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo eliminar la receta.");
+    }
+  }
+
+  const recetasFiltradas = filtroPaciente.trim()
+    ? recetas.filter((r) =>
+        r.paciente_nombre?.toLowerCase().includes(filtroPaciente.toLowerCase()) ||
+        r.paciente_matricula?.includes(filtroPaciente)
+      )
+    : recetas;
 
   async function handleBusquedaPaciente(e) {
     const val = e.target.value;
@@ -110,7 +165,6 @@ function Recetas() {
     setPacienteSeleccionado(null);
   }
 
-  // Guarda en Supabase y luego imprime
   async function imprimirReceta() {
     if (!pacienteSeleccionado) {
       alert("Seleccione un paciente.");
@@ -143,7 +197,7 @@ function Recetas() {
     }
   }
 
- return (
+  return (
     <div
       style={{
         display: "flex",
@@ -162,12 +216,10 @@ function Recetas() {
           flexDirection: "column",
         }}
       >
-        {/* Añadimos d-print-none para ocultar la barra superior */}
         <div className="d-print-none">
           <Topbar user={user} />
         </div>
 
-        {/* Añadimos d-print-none a todo el formulario interactivo original */}
         <main className="container-fluid py-4 px-4 d-print-none">
           <div className="mb-4">
             <h2 className="fw-bold">Generar receta médica</h2>
@@ -368,10 +420,134 @@ function Recetas() {
               </div>
             </div>
           </div>
+
+          {/* ── Historial de recetas por paciente ── */}
+          <div className="card shadow-sm border-0 mt-4">
+            <div className="card-body p-4">
+              <div className="d-flex justify-content-between align-items-center mb-1">
+                <h4 className="fw-bold mb-0">📄 Historial de recetas</h4>
+
+                <div className="input-group" style={{ maxWidth: "280px" }}>
+                  <span className="input-group-text bg-white">🔍</span>
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
+                    placeholder="Filtrar por paciente o matrícula..."
+                    value={filtroPaciente}
+                    onChange={(e) => setFiltroPaciente(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <p className="text-muted mb-4">
+                Recetas generadas y guardadas en el sistema.
+              </p>
+
+              <div className="table-responsive">
+                <table className="table table-hover align-middle mb-0">
+                  <thead className="table-light">
+                    <tr>
+                      <th className="py-3 px-4 border-bottom-0">Paciente</th>
+                      <th className="py-3 px-4 border-bottom-0">Matrícula</th>
+                      <th className="py-3 px-4 border-bottom-0">Seguro</th>
+                      <th className="py-3 px-4 border-bottom-0">Fecha</th>
+                      <th className="py-3 px-4 border-bottom-0">Medicamentos</th>
+                      <th className="py-3 px-4 border-bottom-0">Acciones</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {loadingRecetas ? (
+                      <tr>
+                        <td colSpan={6} className="text-center text-muted py-4">
+                          Cargando...
+                        </td>
+                      </tr>
+                    ) : recetasFiltradas.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="text-center text-muted py-4">
+                          No hay recetas registradas.
+                        </td>
+                      </tr>
+                    ) : (
+                      recetasFiltradas.map((r) => (
+                        <>
+                          <tr key={r.id}>
+                            <td className="py-3 px-4 fw-medium">{r.paciente_nombre}</td>
+                            <td className="py-3 px-4">{r.paciente_matricula}</td>
+                            <td className="py-3 px-4">{r.paciente_seguro}</td>
+                            <td className="py-3 px-4">
+                              {new Date(r.created_at).toLocaleDateString("es-DO")}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="badge bg-secondary rounded-pill px-3 py-2">
+                                {Array.isArray(r.medicamentos) ? r.medicamentos.length : 0} med.
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="d-flex gap-2">
+                                <button
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() =>
+                                    setRecetaExpandida(recetaExpandida === r.id ? null : r.id)
+                                  }
+                                >
+                                  {recetaExpandida === r.id ? "Ocultar" : "Ver detalle"}
+                                </button>
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => handleEliminarReceta(r.id)}
+                                >
+                                  Eliminar
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+
+                          {recetaExpandida === r.id && (
+                            <tr key={`${r.id}-detalle`}>
+                              <td colSpan={6} className="p-0">
+                                <div className="bg-light p-4">
+                                  <p className="mb-2 fw-semibold">
+                                    Recomendaciones:{" "}
+                                    <span className="fw-normal">
+                                      {r.recomendaciones || "—"}
+                                    </span>
+                                  </p>
+                                  <table className="table table-sm table-bordered mb-0">
+                                    <thead className="table-light">
+                                      <tr>
+                                        <th>Código</th>
+                                        <th>Medicamento</th>
+                                        <th>Dosis</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {Array.isArray(r.medicamentos) &&
+                                        r.medicamentos.map((m, i) => (
+                                          <tr key={i}>
+                                            <td>{m.codigo}</td>
+                                            <td>{m.nombre}</td>
+                                            <td>{m.dosis}</td>
+                                          </tr>
+                                        ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </main>
 
-        {/*CONTENEDOR PARA IMPRESIÓN*/}
-        {/* d-none lo oculta en la pantalla normal, d-print-block lo activa en la impresión */}
+        {/* CONTENEDOR PARA IMPRESIÓN */}
         <div className="d-none d-print-block p-5 m-2 bg-white text-dark" style={{ width: "100%" }}>
           <div className="text-center mb-4">
             <h2 className="fw-bold m-0" style={{ letterSpacing: "1px" }}>UCNE</h2>
@@ -427,12 +603,12 @@ function Recetas() {
               <p className="mb-0 mt-1 italic" style={{ fontSize: "11pt" }}>{recomendaciones}</p>
             </div>
           )}
+
           <div className="text-center" style={{ marginTop: "120px" }}>
             <div style={{ borderTop: "1px solid #000", width: "280px", margin: "0 auto" }}></div>
             <p className="mt-2 small fw-semibold text-uppercase text-muted">Firma y Sello Médico autorizado</p>
           </div>
         </div>
-        {/* ======================================================================= */}
 
       </div>
     </div>
