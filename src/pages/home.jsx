@@ -7,10 +7,15 @@ import StatsCards from "../components/StatsCards";
 import PacientesTable from "../components/PacientesTable";
 import AlertasCard from "../components/AlertasCard";
 
-
 function Home() {
     const [user, setUser] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    
+    const [stats, setStats] = useState({ totalPacientes: 0, urgencias: 0 });
+    const [pacientesRecientes, setPacientesRecientes] = useState([]);
+    const [alertasInventario, setAlertasInventario] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         supabase.auth.getUser().then(({ data }) => {
@@ -23,8 +28,50 @@ function Home() {
             setUser(session?.user ?? null);
         });
 
+        
+        cargarDatosDashboard();
+
         return () => subscription.unsubscribe();
     }, []);
+
+    const cargarDatosDashboard = async () => {
+        setLoading(true);
+        try {
+            
+            const { count: totalRegistrados, error: errorPacientes } = await supabase
+                .from("registrar_paciente")
+                .select("*", { count: "exact", head: true })
+                .eq("activo", true);
+
+            
+            const { data: recientes } = await supabase
+                .from("registrar_paciente")
+                .select("*")
+                .eq("activo", true)
+                .order("id", { ascending: false }) 
+                .limit(5);
+
+            
+            const { data: alertas } = await supabase
+                .from("inventario")
+                .select("*")
+                .eq("activo", true)
+                .lte("cantidad", 3);
+
+            
+            setStats({
+                totalPacientes: totalRegistrados || 0,
+                urgencias: 0 
+            });
+            setPacientesRecientes(recientes || []);
+            setAlertasInventario(alertas || []);
+
+        } catch (error) {
+            console.error("Error al cargar los datos del panel principal:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div
@@ -34,9 +81,9 @@ function Home() {
                 background: "#f5f7fb",
             }}
         >
-           <Sidebar
-            isOpen={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
+            <Sidebar
+                isOpen={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
             />
 
             <div
@@ -54,7 +101,7 @@ function Home() {
 
                     <div className="mb-4">
                         <h2 className="fw-bold">
-                            ¡Bienvenido, {user?.user_metadata?.nombre || user?.email}!
+                            ¡Bienvenido, {user?.user_metadata?.nombre || user?.email || "Usuario"}!
                         </h2>
 
                         <p className="text-muted mb-0">
@@ -62,22 +109,20 @@ function Home() {
                         </p>
                     </div>
 
-                    <StatsCards />
+                    
+                    <StatsCards stats={stats} loading={loading} />
 
                     <div className="row">
                         <div className="col-lg-8">
-                            <PacientesTable />
+                            <PacientesTable pacientes={pacientesRecientes} loading={loading} />
                         </div>
 
                         <div className="col-lg-4">
-                            <AlertasCard />
+                            <AlertasCard alertas={alertasInventario} loading={loading} />
                         </div>
                     </div>
 
                 </main>
-
-              
-
             </div>
         </div>
     );
