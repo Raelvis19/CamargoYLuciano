@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
+import {obtenerInventario} from "../services/inventarioService";
+
 
 export default function AgregarMedicamentoModal({
   show,
@@ -12,6 +14,25 @@ export default function AgregarMedicamentoModal({
   const [duracion, setDuracion] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [indicaciones, setIndicaciones] = useState("");
+  const [inventario, setInventario] = useState([]);
+
+  const medicamentoSeleccionado = inventario.find(
+    (med) => med.nombre === medicamento
+  );
+
+
+  useEffect(() => { 
+    async function  cargarInventario() {
+      try {
+        const data = await obtenerInventario();
+        setInventario(data);
+      } catch (error) {
+        console.error("Error al obtener el inventario:", error);
+      }
+    }
+    cargarInventario();
+  }, []);
+  
 
   const limpiarFormulario = () => {
     setMedicamento("");
@@ -25,13 +46,30 @@ export default function AgregarMedicamentoModal({
   const agregarMedicamento = () => {
     if (!medicamento) return;
 
+    if (!cantidad || parseInt(cantidad) <= 0) {
+      alert("Ingrese una cantidad válida.");
+      return;
+    }
+
+    if (
+      medicamentoSeleccionado &&
+      parseInt(cantidad) > medicamentoSeleccionado.cantidad
+    ) {
+      alert(
+        `Solo hay ${medicamentoSeleccionado.cantidad} unidades disponibles en inventario.`
+      );
+      return;
+    }
+
     onAgregar({
+      medicamentoId: medicamentoSeleccionado.id,
       medicamento,
       dosis,
       frecuencia,
       duracion,
-      cantidad,
+      cantidad: parseInt(cantidad),
       indicaciones,
+      stockDisponible: medicamentoSeleccionado.cantidad,
     });
 
     limpiarFormulario();
@@ -49,23 +87,22 @@ export default function AgregarMedicamentoModal({
           <Form.Group className="mb-3">
             <Form.Label>Medicamento</Form.Label>
 
-            {/* Más adelante puedes reemplazar este select
-                por un buscador conectado a Supabase */}
             <Form.Select
               value={medicamento}
               onChange={(e) => setMedicamento(e.target.value)}
             >
               <option value="">Seleccione un medicamento</option>
-              <option value="Paracetamol 500 mg">
-                Paracetamol 500 mg
-              </option>
-              <option value="Ibuprofeno 400 mg">
-                Ibuprofeno 400 mg
-              </option>
-              <option value="Amoxicilina 500 mg">
-                Amoxicilina 500 mg
-              </option>
+              {inventario.map((med) => (
+                <option key={med.id} value={med.nombre}>
+                  {med.nombre} ({med.cantidad} disponibles)
+                </option>
+              ))}
             </Form.Select>
+            {medicamentoSeleccionado && (
+              <small className="text-muted d-block mt-2">
+                Disponible: <strong>{medicamentoSeleccionado.cantidad}</strong> unidades.
+              </small>
+            )}
           </Form.Group>
 
           <Row>

@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
-
+import DetalleAtencionModal from "../components/historial/DetalleAtencionModal";
+import { obtenerDetalleAtencion } from "../services/HistorialService";
+import { buscarPacientes } from "../services/BuscarPacientesService";
+import { obtenerHistorialPaciente } from "../services/HistorialService";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
@@ -8,6 +11,9 @@ export default function ConsultarHistorial() {
   const [user, setUser] = useState(null);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [detalleAtencion, setDetalleAtencion] = useState(null);
+  const [detalleMedicamentos, setDetalleMedicamentos] = useState([]);
   
   // Estados para manejar lo que se muestra en pantalla: 'idle' (inicio), 'found' (éxito), 'not_found' (error)
   const [searchStatus, setSearchStatus] = useState("idle"); 
@@ -30,37 +36,31 @@ export default function ConsultarHistorial() {
 
   const handleSearch = async () => {
     if (!query.trim()) return;
-    
     setLoading(true);
     setSearchStatus("idle");
-
-    // Simulador de búsqueda
-    setTimeout(() => {
-      // Si el usuario escribe "error" o "000", simulamos que no se encontró
-      if (query === "error" || query === "000") {
+    try {
+      const pacientes = await buscarPacientes(query);
+      if (!pacientes || pacientes.length === 0) {
         setSearchStatus("not_found");
         setPatientInfo(null);
         setMedicalHistory([]);
-      } else {
-        // Simulamos un resultado exitoso (Carlos Perez, como en tu prototipo)
-        setSearchStatus("found");
-        setPatientInfo({
-          nombre: "Carlos Perez",
-          matricula: "10004325",
-          edad: 34,
-          sexo: "Masculino",
-          tipoSangre: "O+",
-          alergias: "Penicilina, Ibuprofeno" // Se mostrará en rojo
-        });
-        
-        setMedicalHistory([
-          { id: 101, fecha: "20/02/2026", motivo: "Chequeo general", medico: "Dra. Ramírez", especialidad: "Medicina General" },
-          { id: 102, fecha: "05/11/2025", motivo: "Dolor abdominal", medico: "Dr. Castillo", especialidad: "Gastroenterología" },
-          { id: 103, fecha: "15/06/2025", motivo: "Infección respiratoria", medico: "Dra. Ramírez", especialidad: "Medicina General" },
-        ]);
+        setLoading(false);
+        return;
       }
+      const paciente = pacientes[0];
+      setPatientInfo(paciente);
+      const historial = await obtenerHistorialPaciente(paciente.id);
+      setMedicalHistory(historial || []);
+      setSearchStatus("found");
+    } catch (error) {
+      console.error(error);
+      alert("Error al consultar el historial clínico.");
+      setPatientInfo(null);
+      setMedicalHistory([]);
+      setSearchStatus("idle");
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   const handleClear = () => {
@@ -69,6 +69,22 @@ export default function ConsultarHistorial() {
     setPatientInfo(null);
     setMedicalHistory([]);
   };
+
+
+  async function abrirDetalle(atencion) {
+    try {
+      setDetalleAtencion(atencion);
+
+      const medicamentos = await obtenerDetalleAtencion(atencion.id);
+
+      setDetalleMedicamentos(medicamentos);
+
+      setShowModal(true);
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo cargar el detalle de la atención.");
+    }
+  }
 
   return (
     <div
@@ -90,12 +106,12 @@ export default function ConsultarHistorial() {
         <Topbar user={user} />
 
         <main className="container-fluid py-4 px-4">
-          
           {/* Encabezado */}
           <div className="mb-4">
             <h2 className="fw-bold">Consulta de historial clínico</h2>
             <p className="text-muted">
-              Busque el expediente de un paciente para ver su información médica y visitas anteriores.
+              Busque el expediente de un paciente para ver su información médica
+              y visitas anteriores.
             </p>
           </div>
 
@@ -112,13 +128,17 @@ export default function ConsultarHistorial() {
                   placeholder="Ej. 1000-4325 o Carlos Perez"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 />
-                <button 
-                  className="btn btn-primary px-4 fw-semibold" 
+                <button
+                  className="btn btn-primary px-4 fw-semibold"
                   onClick={handleSearch}
                   disabled={loading}
-                  style={{ backgroundColor: '#A2B2C9', borderColor: '#A2B2C9', color: '#1a1a1a' }} // Colores similares al botón gris/azulado de tu prototipo
+                  style={{
+                    backgroundColor: "#A2B2C9",
+                    borderColor: "#A2B2C9",
+                    color: "#1a1a1a",
+                  }} // Colores similares al botón gris/azulado de tu prototipo
                 >
                   {loading ? "Buscando..." : "Buscar historial"}
                 </button>
@@ -128,17 +148,32 @@ export default function ConsultarHistorial() {
 
           {/* ESTADO 1: ERROR (No encontrado) */}
           {searchStatus === "not_found" && (
-            <div className="card border-0 shadow-sm mb-4" style={{ backgroundColor: '#f8d7da' }}>
+            <div
+              className="card border-0 shadow-sm mb-4"
+              style={{ backgroundColor: "#f8d7da" }}
+            >
               <div className="card-body text-center py-5">
-                <h5 className="text-danger fw-bold mb-3">Paciente no encontrado</h5>
+                <h5 className="text-danger fw-bold mb-3">
+                  Paciente no encontrado
+                </h5>
                 <p className="text-danger mb-4">
-                  El paciente no se encuentra registrado en el sistema. Verifique los datos e intente nuevamente.
+                  El paciente no se encuentra registrado en el sistema.
+                  Verifique los datos e intente nuevamente.
                 </p>
                 <div className="d-flex justify-content-center gap-3">
-                  <button className="btn btn-outline-secondary px-4" onClick={handleClear}>
+                  <button
+                    className="btn btn-outline-secondary px-4"
+                    onClick={handleClear}
+                  >
                     Limpiar buscador
                   </button>
-                  <button className="btn btn-danger px-4" style={{ backgroundColor: '#e57373', borderColor: '#e57373' }}>
+                  <button
+                    className="btn btn-danger px-4"
+                    style={{
+                      backgroundColor: "#e57373",
+                      borderColor: "#e57373",
+                    }}
+                  >
                     Registrar nuevo paciente
                   </button>
                 </div>
@@ -155,23 +190,37 @@ export default function ConsultarHistorial() {
                   <div className="row align-items-center">
                     <div className="col-md-4 border-end">
                       <h5 className="fw-bold mb-1">{patientInfo.nombre}</h5>
-                      <span className="text-muted">Matrícula: {patientInfo.matricula}</span>
+                      <span className="text-muted">
+                        Matrícula: {patientInfo.matricula}
+                      </span>
                     </div>
                     <div className="col-md-8 px-4 d-flex justify-content-between">
                       <div>
-                        <small className="text-muted d-block">Edad / Sexo</small>
-                        <span className="fw-medium">{patientInfo.edad} años, {patientInfo.sexo}</span>
+                        <small className="text-muted d-block">
+                          Edad / Sexo
+                        </small>
+                        <span className="fw-medium">
+                          {patientInfo.edad} años, {patientInfo.sexo}
+                        </span>
                       </div>
                       <div>
-                        <small className="text-muted d-block">Tipo de Sangre</small>
-                        <span className="fw-medium">{patientInfo.tipoSangre}</span>
+                        <small className="text-muted d-block">
+                          Tipo de Sangre
+                        </small>
+                        <span className="fw-medium">
+                          {patientInfo.tipo_sangre || "No registrado"}
+                        </span>
                       </div>
                       <div>
                         <small className="text-muted d-block">Alergias</small>
                         {patientInfo.alergias ? (
-                          <span className="badge bg-danger rounded-pill px-2 py-1">{patientInfo.alergias}</span>
+                          <span className="badge bg-danger rounded-pill px-2 py-1">
+                            {patientInfo.alergias}
+                          </span>
                         ) : (
-                          <span className="text-success fw-medium">Ninguna conocida</span>
+                          <span className="text-success fw-medium">
+                            No registra
+                          </span>
                         )}
                       </div>
                     </div>
@@ -183,7 +232,7 @@ export default function ConsultarHistorial() {
               <div className="card border-0 shadow-sm">
                 <div className="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
                   <h5 className="fw-bold mb-0">Resultados del historial</h5>
-                  
+
                   {/* Pequeño filtro/selector de fechas simulado */}
                   <select className="form-select form-select-sm w-auto">
                     <option value="all">Todas las fechas</option>
@@ -197,28 +246,49 @@ export default function ConsultarHistorial() {
                     <table className="table table-hover align-middle mb-0">
                       <thead className="table-light">
                         <tr>
-                          <th className="py-3 px-4 border-bottom-0">Fecha de consulta</th>
-                          <th className="py-3 px-4 border-bottom-0">Motivo</th>
-                          <th className="py-3 px-4 border-bottom-0">Médico</th>
+                          <th className="py-3 px-4 border-bottom-0">
+                            Fecha de consulta
+                          </th>
+                          <th className="py-3 px-4 border-bottom-0">
+                            Diagnóstico
+                          </th>
+                          <th className="py-3 px-4 border-bottom-0">Hora</th>
                           <th className="py-3 px-4 border-bottom-0">Acción</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {medicalHistory.map((registro) => (
-                          <tr key={registro.id}>
-                            <td className="py-3 px-4 fw-medium text-secondary">{registro.fecha}</td>
-                            <td className="py-3 px-4">{registro.motivo}</td>
-                            <td className="py-3 px-4">
-                              {registro.medico} <br/>
-                              <small className="text-muted">{registro.especialidad}</small>
-                            </td>
-                            <td className="py-3 px-4">
-                              <button className="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                Ver detalles
-                              </button>
+                        {medicalHistory.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={4}
+                              className="text-center py-4 text-muted"
+                            >
+                              Este paciente aún no tiene atenciones registradas.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          medicalHistory.map((registro) => (
+                            <tr key={registro.id}>
+                              <td className="py-3 px-4 fw-medium text-secondary">
+                                {registro.fecha}
+                              </td>
+                              <td className="py-3 px-4">
+                                {registro.diagnostico}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span>{registro.hora}</span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <button
+                                  className="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                  onClick={() => abrirDetalle(registro)}
+                                >
+                                  Ver detalles
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -226,9 +296,14 @@ export default function ConsultarHistorial() {
               </div>
             </>
           )}
-
         </main>
       </div>
+      <DetalleAtencionModal
+        show={showModal}
+        handleClose={() => setShowModal(false)}
+        atencion={detalleAtencion}
+        medicamentos={detalleMedicamentos}
+      />
     </div>
   );
 }
