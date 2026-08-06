@@ -1,6 +1,6 @@
 import { useState,useEffect } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
-import {obtenerInventario} from "../services/inventarioService";
+import {obtenerInventario} from "../services/InventarioService";
 
 
 export default function AgregarMedicamentoModal({
