@@ -1,0 +1,263 @@
+.patient-page {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 28px 32px 110px;
+  box-sizing: border-box;
+}
+
+.patient-page__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+
+.patient-page__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--primary);
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.patient-page__title {
+  margin: 0;
+  font-size: clamp(1.65rem, 2.4vw, 2.15rem);
+  font-weight: 800;
+  letter-spacing: -.035em;
+}
+
+.patient-page__subtitle {
+  max-width: 700px;
+  margin: 8px 0 0;
+  color: var(--text-muted);
+}
+
+.patient-progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.patient-progress__item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 58px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+.patient-progress__number {
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary);
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.patient-progress__item strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: .86rem;
+  line-height: 1.2;
+}
+
+.patient-progress__item span:last-child {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: .72rem;
+}
+
+.patient-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.patient-section {
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px rgba(24, 45, 78, .065);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.patient-section:hover {
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border-color));
+  box-shadow: 0 16px 38px rgba(24, 45, 78, .09);
+}
+
+.patient-section__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-soft) 78%, transparent), transparent);
+}
+
+.patient-section__icon {
+  display: grid;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--section-accent, var(--primary)) 13%, var(--surface));
+  color: var(--section-accent, var(--primary));
+  font-size: 1.15rem;
+}
+
+.patient-section__header h3 {
+  margin: 0;
+  font-size: 1.06rem;
+  font-weight: 800;
+  letter-spacing: -.015em;
+}
+
+.patient-section__header p {
+  margin: 3px 0 0;
+  color: var(--text-muted);
+  font-size: .84rem;
+}
+
+.patient-section__body {
+  padding: 22px;
+}
+
+.patient-section--personal { --section-accent: #5b49b7; }
+.patient-section--contact { --section-accent: #df3f86; }
+.patient-section--medical { --section-accent: #1e75d8; }
+.patient-section--emergency { --section-accent: #dd4e4e; }
+
+.patient-field .form-label {
+  margin-bottom: 7px;
+  color: var(--text-secondary);
+  font-size: .82rem;
+  font-weight: 750;
+}
+
+.patient-field .required-mark {
+  color: #e05252;
+}
+
+.patient-field .form-control,
+.patient-field .form-select {
+  min-height: 48px;
+  border-radius: 12px;
+  border-width: 1px;
+  padding-inline: 14px;
+  font-size: .92rem;
+}
+
+.patient-field textarea.form-control {
+  min-height: 92px;
+  padding-top: 12px;
+  resize: vertical;
+}
+
+.patient-field .form-control:hover,
+.patient-field .form-select:hover {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border-color)) !important;
+}
+
+.patient-field__hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-subtle);
+  font-size: .72rem;
+}
+
+.patient-form__actions {
+  position: sticky;
+  bottom: 14px;
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 90%, transparent);
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 14px 38px rgba(15, 30, 52, .16);
+  backdrop-filter: blur(14px);
+}
+
+.patient-form__actions-text strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: .88rem;
+}
+
+.patient-form__actions-text span {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: .76rem;
+}
+
+.patient-form__buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.patient-form__buttons .btn {
+  min-height: 44px;
+  padding: 0 18px;
+}
+
+.patient-form__buttons .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+@media (max-width: 1100px) {
+  .patient-progress { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 767px) {
+  .patient-page { padding: 20px 16px 28px; }
+  .patient-page__header { align-items: flex-start; }
+  .patient-progress { grid-template-columns: 1fr; }
+  .patient-section__header, .patient-section__body { padding-inline: 17px; }
+  .patient-form__actions { position: static; align-items: stretch; flex-direction: column; }
+  .patient-form__buttons { width: 100%; }
+  .patient-form__buttons .btn { flex: 1; }
+}
+
+@media (max-width: 480px) {
+  .patient-form__buttons { flex-direction: column-reverse; }
+}
+
+.patient-page__content {
+  width: 100%;
+  max-width: var(--page-max-width, 1480px);
+  margin: 0 auto;
+}
