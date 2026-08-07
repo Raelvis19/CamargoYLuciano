@@ -23,7 +23,7 @@ export default function ResultsTable({ patients, onSelectPatient,onDelete}) {
   return (
     <div className="table-responsive">
       <table className="table table-hover align-middle mb-0">
-        <thead className="table-light">
+        <thead>
           <tr>
             <th className="py-3 px-4">Nombre</th>
             <th className="py-3 px-4">Matricula</th>

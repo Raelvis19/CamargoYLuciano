@@ -217,3 +217,65 @@ main.container-fluid.py-4.px-4 > .mb-4:first-child p{
 }
 
 @media print{body{background:#fff!important;color:#000!important}.d-print-none{display:none!important}.d-none.d-print-block{display:block!important;width:100%!important;margin:0!important;padding:20px!important}}
+
+/* =========================
+   TABLAS - TEMA GLOBAL
+========================= */
+
+.table {
+  --bs-table-bg: var(--surface);
+  --bs-table-color: var(--text-primary);
+  --bs-table-border-color: var(--border-color);
+  --bs-table-striped-bg: var(--surface-soft);
+  --bs-table-striped-color: var(--text-primary);
+  --bs-table-hover-bg: color-mix(
+    in srgb,
+    var(--primary) 8%,
+    var(--surface)
+  );
+  --bs-table-hover-color: var(--text-primary);
+
+  color: var(--text-primary);
+  background-color: var(--surface);
+}
+
+.table > :not(caption) > * > * {
+  color: var(--text-primary);
+  background-color: var(--surface);
+  border-color: var(--border-color);
+}
+
+.table thead th {
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  border-color: var(--border-color);
+}
+
+.table tbody td {
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+.table-hover > tbody > tr:hover > * {
+  color: var(--text-primary);
+  background-color: color-mix(
+    in srgb,
+    var(--primary) 7%,
+    var(--surface)
+  );
+}
+
+.table-light {
+  --bs-table-bg: var(--surface-soft) !important;
+  --bs-table-color: var(--text-primary) !important;
+  --bs-table-border-color: var(--border-color) !important;
+
+  color: var(--text-primary) !important;
+  background-color: var(--surface-soft) !important;
+}
+
+.table-light th,
+.table-light td {
+  color: var(--text-primary) !important;
+  background-color: var(--surface-soft) !important;
+}

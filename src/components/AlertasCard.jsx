@@ -1,46 +1,77 @@
 import { FiAlertCircle, FiCheckCircle } from "react-icons/fi";
-
+import "./AlertasCard.css";
 
 function AlertasCard({ alertas, loading }) {
-  
   return (
-    <div className="card border-0 shadow-sm mt-4 h-100">
-      <div className="card-header bg-white fw-bold py-3">
-        Alertas del sistema
+    <section className="alerts-card">
+      <div className="alerts-card__header">
+        <span className="alerts-card__eyebrow">
+          Estado del sistema
+        </span>
+
+        <h3 className="alerts-card__title">
+          Alertas del sistema
+        </h3>
+
+        <p className="alerts-card__subtitle">
+          Revisión automática del inventario.
+        </p>
       </div>
 
-      <div className="card-body">
+      <div className="alerts-card__body">
         {loading ? (
-          <p className="text-muted text-center my-3">Revisando inventario...</p>
-        ) : alertas && alertas.length > 0 ? (
+          <div className="alerts-card__empty">
+            Revisando inventario...
+          </div>
+        ) : alertas?.length > 0 ? (
           <div>
-            <h6 className="text-danger fw-bold mb-3 small">¡Inventario Bajo!</h6>
-            {alertas.map((med, index) => (
-              <div
-                key={index}
-                className="d-flex align-items-center mb-3 bg-light p-2 rounded"
-              >
-                <FiAlertCircle className="text-danger me-2" size={20} />
-                <div className="d-flex flex-column">
-                  <span className="fw-medium text-dark" style={{ fontSize: "0.9rem" }}>
-                    {med.nombre}
-                  </span>
-                  <span className="text-muted" style={{ fontSize: "0.8rem" }}>
-                    Solo quedan {med.cantidad} unidades.
+            <div className="alerts-card__warning-title">
+              <FiAlertCircle />
+              Inventario bajo
+            </div>
+
+            <div className="alerts-list">
+              {alertas.map((med) => (
+                <div
+                  key={med.id ?? med.codigo ?? med.nombre}
+                  className="alerts-item"
+                >
+                  <div className="alerts-item__icon">
+                    <FiAlertCircle />
+                  </div>
+
+                  <div className="alerts-item__content">
+                    <span className="alerts-item__name">
+                      {med.nombre}
+                    </span>
+
+                    <span className="alerts-item__description">
+                      Solo quedan {med.cantidad} unidades disponibles.
+                    </span>
+                  </div>
+
+                  <span className="alerts-item__stock">
+                    {med.cantidad}
                   </span>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="text-center my-4 text-muted">
-             <FiCheckCircle className="text-success mb-2" size={32} />
-             <p className="mb-0">Todo está en orden.</p>
-             <small>El inventario tiene stock suficiente.</small>
+          <div className="alerts-card__success">
+            <div className="alerts-card__success-icon">
+              <FiCheckCircle />
+            </div>
+
+            <h4>Todo está en orden</h4>
+
+            <p>
+              El inventario tiene stock suficiente.
+            </p>
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }
 
