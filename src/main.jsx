@@ -5,12 +5,15 @@ import "./index.css";
 import App from "./App.jsx";
 import { ThemeProvider } from "./context/ThemeContext.jsx";
 import NotificationCenter from "./components/ui/NotificationCenter.jsx";
+import { ConfirmProvider } from "./components/ui/ConfirmDialog";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <ThemeProvider>
-      <App />
-      <NotificationCenter />
-    </ThemeProvider>
+    <ConfirmProvider>
+      <ThemeProvider>
+        <App />
+        <NotificationCenter />
+      </ThemeProvider>
+    </ConfirmProvider>
   </StrictMode>
 );

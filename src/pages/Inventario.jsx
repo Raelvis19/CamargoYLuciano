@@ -1,27 +1,28 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
 import { FiPlusCircle, FiEdit, FiTrash2 } from "react-icons/fi";
+import { notify } from "../utils/notify";
 
 import Sidebar from "../components/Sidebar";
 
 import Topbar from "../components/Topbar";
 
-import AgregarInventarioModal from "../components/AgregarInventarioModal"; 
-
+import AgregarInventarioModal from "../components/AgregarInventarioModal";
+import { useConfirm } from "../components/ui/ConfirmDialog";
 import { obtenerInventario, registrarMedicamento, actualizarMedicamento, eliminarMedicamentoLogico } from "../services/InventarioService";
 
 function Inventario() {
   const [user, setUser] = useState(null);
-
+  const confirm = useConfirm();
   const [showModal, setShowModal] = useState(false);
 
   const [medicamentos, setMedicamentos] = useState([]);
 
   const [loading, setLoading] = useState(true);
-  
-  
+
+
   const [selectedMedIndex, setSelectedMedIndex] = useState(null);
-  
+
   const [medicamentoAEditar, setMedicamentoAEditar] = useState(null);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ function Inventario() {
     return () => subscription.unsubscribe();
   }, []);
 
-  
+
   const fetchMedicamentos = async () => {
     try {
       setLoading(true);
@@ -46,36 +47,36 @@ function Inventario() {
       setMedicamentos(data);
     } catch (error) {
       console.error("Error al traer el inventario:", error);
-      alert("No se pudo cargar el inventario de la base de datos.");
+      notify.error("No se pudo cargar el inventario de la base de datos.");
     } finally {
       setLoading(false);
     }
   };
 
-  
+
   const handleGuardarMedicamento = async (medicamentoDatos) => {
     try {
       if (medicamentoAEditar) {
-        
+
         const idOriginal = medicamentoDatos.id;
-        delete medicamentoDatos.id; 
+        delete medicamentoDatos.id;
 
         const data = await actualizarMedicamento(idOriginal, medicamentoDatos);
         if (data) {
-          alert("Medicamento modificado correctamente.");
-          fetchMedicamentos(); 
+          notify.success("Medicamento modificado correctamente.");
+          fetchMedicamentos();
         }
       } else {
-        
+
         const data = await registrarMedicamento(medicamentoDatos);
         if (data) {
-          alert("Medicamento agregado al inventario.");
+          notify.success("Medicamento agregado al inventario.");
           setMedicamentos([...medicamentos, data[0]]);
         }
       }
     } catch (error) {
       console.error("Error en la operación:", error);
-      alert("Hubo un problema al procesar la solicitud en la base de datos.");
+      notify.error("Hubo un problema al procesar la solicitud en la base de datos.");
     } finally {
       setMedicamentoAEditar(null);
       setSelectedMedIndex(null);
@@ -93,7 +94,7 @@ function Inventario() {
 
   const abrirModalModificar = () => {
     if (selectedMedIndex === null) {
-      alert("Por favor, seleccione un medicamento de la tabla haciendo clic sobre él.");
+      notify.info("Por favor, seleccione un medicamento de la tabla haciendo clic sobre él.");
       return;
     }
     setMedicamentoAEditar(medicamentos[selectedMedIndex]);
@@ -102,23 +103,32 @@ function Inventario() {
 
   const handleEliminarMedicamento = async () => {
     if (selectedMedIndex === null) {
-      alert("Por favor, seleccione un medicamento de la tabla haciendo clic sobre él.");
+      notify.info("Por favor, seleccione un medicamento de la tabla haciendo clic sobre él.");
       return;
     }
 
     const medicamentoSeleccionado = medicamentos[selectedMedIndex];
-    
-    
-    if (window.confirm(`¿Está seguro que desea eliminar ${medicamentoSeleccionado.nombre}?`)) {
-      try {
-        await eliminarMedicamentoLogico(medicamentoSeleccionado.id);
-        alert("Medicamento eliminado correctamente.");
-        setSelectedMedIndex(null);
-        fetchMedicamentos(); 
-      } catch (error) {
-        console.error("Error al eliminar:", error);
-        alert("Hubo un problema al eliminar el medicamento.");
-      }
+
+
+    const confirmado = await confirm({
+      title: "Eliminar medicamento",
+      message:
+        "¿Estás seguro de que deseas eliminar este medicamento? Esta acción no se puede deshacer.",
+      confirmText: "Sí, eliminar",
+      cancelText: "Cancelar",
+      variant: "danger",
+    });
+
+    if (!confirmado) return;
+
+    try {
+      await eliminarMedicamento(id);
+
+      notify.success("Medicamento eliminado correctamente.");
+    } catch (error) {
+      console.error(error);
+
+      notify.error("No se pudo eliminar el medicamento.");
     }
   };
 
@@ -137,13 +147,13 @@ function Inventario() {
             </p>
           </div>
 
-          <div className="card shadow-sm border-0 mb-4" 
-          style={{ borderRadius: "15px" }}>
+          <div className="card shadow-sm border-0 mb-4"
+            style={{ borderRadius: "15px" }}>
             <div className="card-body p-5 text-center">
               <h4 className="fw-bold mb-4">Control de inventario de medicamentos</h4>
-              
+
               <div className="d-flex justify-content-center flex-wrap gap-3">
-                <button 
+                <button
                   onClick={abrirModalAgregar}
                   className="btn d-flex align-items-center gap-2 px-4 py-2 shadow-sm"
                   style={{ backgroundColor: "#e8f5e9", color: "#2e7d32", borderRadius: "12px", border: "none", fontWeight: "600" }}
@@ -151,25 +161,25 @@ function Inventario() {
                   <FiPlusCircle size={20} /> Agregar medicamento
                 </button>
 
-                <button 
+                <button
                   onClick={abrirModalModificar}
                   className="btn d-flex align-items-center gap-2 px-4 py-2 shadow-sm"
-                  style={{ 
-                    backgroundColor: selectedMedIndex !== null ? "#e3f2fd" : "#f5f5f5", 
-                    color: selectedMedIndex !== null ? "#0d47a1" : "#1976d2", 
-                    borderRadius: "12px", border: "none", fontWeight: "600" 
+                  style={{
+                    backgroundColor: selectedMedIndex !== null ? "#e3f2fd" : "#f5f5f5",
+                    color: selectedMedIndex !== null ? "#0d47a1" : "#1976d2",
+                    borderRadius: "12px", border: "none", fontWeight: "600"
                   }}
                 >
                   <FiEdit size={20} /> Modificar {selectedMedIndex !== null && "(Seleccionado)"}
                 </button>
 
-                <button 
+                <button
                   onClick={handleEliminarMedicamento}
                   className="btn d-flex align-items-center gap-2 px-4 py-2 shadow-sm"
-                  style={{ 
-                    backgroundColor: "#ffebee", 
-                    color: "#c62828", 
-                    borderRadius: "12px", border: "none", fontWeight: "600" 
+                  style={{
+                    backgroundColor: "#ffebee",
+                    color: "#c62828",
+                    borderRadius: "12px", border: "none", fontWeight: "600"
                   }}
                 >
                   <FiTrash2 size={20} /> Eliminar {selectedMedIndex !== null && "(Seleccionado)"}
@@ -207,11 +217,11 @@ function Inventario() {
                       <tr><td colSpan="6" className="text-center py-4">No hay medicamentos en el inventario.</td></tr>
                     ) : (
                       medicamentos.map((med, index) => (
-                        <tr 
-                          key={med.id || index} 
+                        <tr
+                          key={med.id || index}
                           className="bg-white"
                           onClick={() => setSelectedMedIndex(index)}
-                          style={{ 
+                          style={{
                             cursor: "pointer",
                             backgroundColor: selectedMedIndex === index ? "#e0f2fe" : "#ffffff",
                             borderLeft: selectedMedIndex === index ? "4px solid #0284c7" : "none"
@@ -234,15 +244,15 @@ function Inventario() {
                           </td>
                           <td className="py-3 px-4">
                             <div className="d-flex align-items-center gap-2">
-                              <span 
-                                style={{ 
-                                  width: "10px", height: "10px", 
+                              <span
+                                style={{
+                                  width: "10px", height: "10px",
                                   backgroundColor:
                                     med.estado === "Stock normal"
                                       ? "#4caf50"
                                       : med.estado === "Reorden"
-                                      ? "#ff9800"
-                                      : "#f44336", 
+                                        ? "#ff9800"
+                                        : "#f44336",
                                   borderRadius: "50%", display: "inline-block"
                                 }}
                               ></span>
@@ -261,10 +271,10 @@ function Inventario() {
         </main>
       </div>
 
-      <AgregarInventarioModal 
-        show={showModal} 
+      <AgregarInventarioModal
+        show={showModal}
 
-        handleClose={() => setShowModal(false)} 
+        handleClose={() => setShowModal(false)}
 
         onGuardar={handleGuardarMedicamento}
 

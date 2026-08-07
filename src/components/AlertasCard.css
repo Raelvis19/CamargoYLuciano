@@ -1,0 +1,276 @@
+.alerts-card {
+  height: 100%;
+
+  overflow: hidden;
+
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+
+  background: var(--surface);
+
+  box-shadow: 0 10px 30px rgba(24, 45, 78, 0.06);
+}
+
+.alerts-card__header {
+  padding: 22px 24px 18px;
+
+  border-bottom: 1px solid var(--border-color);
+
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-soft) 70%, transparent),
+    transparent
+  );
+}
+
+.alerts-card__eyebrow {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--primary);
+
+  font-size: 0.72rem;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.alerts-card__title {
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+
+.alerts-card__subtitle {
+  margin: 5px 0 0;
+
+  color: var(--text-muted);
+
+  font-size: 0.82rem;
+}
+
+.alerts-card__body {
+  padding: 22px;
+}
+
+/* =========================
+   ALERTA INVENTARIO
+========================= */
+
+.alerts-card__warning-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 14px;
+
+  color: #dc3545;
+
+  font-size: 0.8rem;
+  font-weight: 800;
+
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alerts-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 14px;
+
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+
+  background: var(--surface-soft);
+
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.alerts-item:hover {
+  transform: translateY(-1px);
+
+  border-color: color-mix(
+    in srgb,
+    #dc3545 28%,
+    var(--border-color)
+  );
+}
+
+.alerts-item__icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 36px;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 11px;
+
+  color: #dc3545;
+
+  background: rgba(220, 53, 69, 0.1);
+
+  font-size: 1.05rem;
+}
+
+.alerts-item__content {
+  display: flex;
+  flex: 1;
+
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.alerts-item__name {
+  overflow: hidden;
+
+  color: var(--text-primary);
+
+  font-size: 0.88rem;
+  font-weight: 750;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alerts-item__description {
+  margin-top: 2px;
+
+  color: var(--text-muted);
+
+  font-size: 0.75rem;
+}
+
+.alerts-item__stock {
+  display: grid;
+  place-items: center;
+
+  min-width: 34px;
+  height: 30px;
+
+  padding: 0 8px;
+
+  border-radius: 9px;
+
+  color: #dc3545;
+
+  background: rgba(220, 53, 69, 0.1);
+
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+/* =========================
+   SIN ALERTAS
+========================= */
+
+.alerts-card__success {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  min-height: 190px;
+
+  text-align: center;
+}
+
+.alerts-card__success-icon {
+  display: grid;
+  place-items: center;
+
+  width: 56px;
+  height: 56px;
+
+  margin-bottom: 14px;
+
+  border-radius: 17px;
+
+  color: #22a447;
+
+  background: rgba(34, 164, 71, 0.11);
+
+  font-size: 1.7rem;
+}
+
+.alerts-card__success h4 {
+  margin: 0;
+
+  color: var(--text-primary);
+
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.alerts-card__success p {
+  margin: 6px 0 0;
+
+  color: var(--text-muted);
+
+  font-size: 0.82rem;
+}
+
+.alerts-card__empty {
+  display: grid;
+
+  min-height: 180px;
+
+  place-items: center;
+
+  color: var(--text-muted);
+
+  font-size: 0.86rem;
+}
+
+/* =========================
+   DARK MODE
+========================= */
+
+[data-theme="dark"] .alerts-card {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="dark"] .alerts-item {
+  background: color-mix(
+    in srgb,
+    var(--surface-soft) 92%,
+    #ffffff 1%
+  );
+}
+
+[data-theme="dark"] .alerts-item__icon,
+[data-theme="dark"] .alerts-item__stock {
+  color: #ff9099;
+
+  background: rgba(239, 68, 68, 0.13);
+}
+
+[data-theme="dark"] .alerts-card__warning-title {
+  color: #ff9099;
+}
+
+[data-theme="dark"] .alerts-card__success-icon {
+  color: #7ce99a;
+
+  background: rgba(34, 197, 94, 0.13);
+}
