@@ -1,143 +1,101 @@
-
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { FiEye, FiEyeOff, FiLock, FiMail } from "react-icons/fi";
 import { supabase } from "../supabase/supabaseClient";
+import { emailRegex } from "../utils/validators";
+import { notify } from "../utils/notify";
 import logo from "../assets/Logo.png";
 import "../Login.css";
 
-
 function Login() {
   const navigate = useNavigate();
-  
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  async function handleLogin(e) {
-    e.preventDefault();
+  async function handleLogin(event) {
+    event.preventDefault();
+    const nextErrors = {};
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!emailRegex.test(cleanEmail)) nextErrors.email = "Escribe un correo electrónico válido.";
+    if (!password) nextErrors.password = "Escribe tu contraseña.";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+
     setLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      alert("Error: " + error.message);
-      return;
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+      if (error) throw error;
+      notify.success("Sesión iniciada correctamente.");
+      navigate("/home", { replace: true });
+    } catch (error) {
+      const message = error?.message?.includes("Invalid login credentials")
+        ? "El correo o la contraseña no son correctos."
+        : error?.message || "No fue posible iniciar sesión.";
+      setErrors({ general: message });
+    } finally {
+      setLoading(false);
     }
-
-    alert("Inicio de sesión exitoso");
-    navigate("/home");
   }
 
   return (
-    <div className="login-bg d-flex justify-content-center align-items-center">
-      <div className="container-fluid d-flex justify-content-center">
-        <div className="row login-card shadow-lg overflow-hidden">
-
-          {/* Panel izquierdo */}
-          <div className="col-lg-6 d-none d-lg-flex login-left">
-            <div className="text-center">
-              <img
-                src={logo}
-                alt="Logo"
-                className="login-logo mb-4"
-              />
-
-              <h1 className="fw-bold text-white">
-                Bienvenidos
-              </h1>
-
-              <h4 className="text-light">
-                Sistema de Gestión de Enfermeria
-              </h4>
-              <h4 className="text-light">
-                
-              </h4>
-              <h4>
-            
-              </h4>
-              <h4 className="text-light">
-                <br />
-                <br />
-                <br />
-                <br />
-                <br />
-                Proyecto En desarrollo por:
-                Raelvis, Lewis, Hamlet y Alexis
-              </h4>
-            </div>
+    <div className="login-bg">
+      <div className="auth-shell">
+        <section className="auth-brand-panel">
+          <img src={logo} alt="Universidad Católica Nordestana" className="login-logo" />
+          <div>
+            <span className="auth-eyebrow">Plataforma clínica académica</span>
+            <h1>Sistema de Gestión de Enfermería</h1>
+            <p>Pacientes, consultas, inventario y seguimiento clínico desde un solo lugar.</p>
           </div>
+          <small>Desarrollado por Raelvis, Lewis, Hamlet y Alexis</small>
+        </section>
 
-          {/* Panel derecho */}
-          <div className="col-lg-6 bg-light">
-            <div className="login-form-container">
+        <section className="auth-form-panel">
+          <div className="auth-form-container">
+            <span className="auth-eyebrow text-primary">Acceso seguro</span>
+            <h2>Bienvenido de nuevo</h2>
+            <p className="auth-subtitle">Ingresa tus credenciales para continuar.</p>
 
-              <h3 className="fw-bold mb-4">
-                Iniciar Sesión
-              </h3>
+            {location.state?.message && <div className="inline-message success">{location.state.message}</div>}
+            {errors.general && <div className="inline-message error">{errors.general}</div>}
 
-              <form onSubmit={handleLogin}>
-
-                <div className="mb-4">
-                  <label className="form-label fw-semibold">
-                    Correo electrónico
-                  </label>
-
-                  <input
-                    type="email"
-                    className="form-control form-control-lg"
-                    placeholder="correo@ejemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+            <form onSubmit={handleLogin} noValidate>
+              <div className="form-field">
+                <label htmlFor="email">Correo electrónico</label>
+                <div className={`input-with-icon ${errors.email ? "is-invalid" : ""}`}>
+                  <FiMail />
+                  <input id="email" type="email" placeholder="correo@ejemplo.com" value={email}
+                    onChange={(e) => { setEmail(e.target.value); setErrors((v) => ({ ...v, email: "", general: "" })); }} autoComplete="email" />
                 </div>
-
-                <div className="mb-4">
-                  <label className="form-label fw-semibold">
-                    Contraseña
-                  </label>
-
-                  <input
-                    type="password"
-                    className="form-control form-control-lg"
-                    placeholder="********"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn btn-primary w-100 btn-lg login-btn"
-                  disabled={loading}
-                >
-                  {loading ? "Conectando..." : "Conectar"}
-                </button>
-
-              </form>
-
-              <div className="text-center mt-4">
-                <small className="text-muted">
-                  ¿Olvidaste tu contraseña?
-                </small>
+                {errors.email && <small className="field-error">{errors.email}</small>}
               </div>
 
-              <div className="text-center mt-3">
-                <Link to="/registro">
-                  ¿No tienes cuenta? Regístrate aquí
-                </Link>
+              <div className="form-field">
+                <div className="label-row"><label htmlFor="password">Contraseña</label><Link to="/recuperar-password">¿La olvidaste?</Link></div>
+                <div className={`input-with-icon ${errors.password ? "is-invalid" : ""}`}>
+                  <FiLock />
+                  <input id="password" type={showPassword ? "text" : "password"} placeholder="Tu contraseña" value={password}
+                    onChange={(e) => { setPassword(e.target.value); setErrors((v) => ({ ...v, password: "", general: "" })); }} autoComplete="current-password" />
+                  <button type="button" className="password-toggle" onClick={() => setShowPassword((v) => !v)} aria-label="Mostrar u ocultar contraseña">
+                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
+                {errors.password && <small className="field-error">{errors.password}</small>}
               </div>
 
-            </div>
-          </div>
+              <button type="submit" className="auth-primary-btn" disabled={loading}>
+                {loading ? <><span className="button-spinner" /> Verificando...</> : "Iniciar sesión"}
+              </button>
+            </form>
 
-        </div>
+            <p className="auth-switch">¿No tienes una cuenta? <Link to="/registro">Crear cuenta</Link></p>
+          </div>
+        </section>
       </div>
     </div>
   );

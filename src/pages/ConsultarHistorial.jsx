@@ -6,6 +6,7 @@ import { buscarPacientes } from "../services/BuscarPacientesService";
 import { obtenerHistorialPaciente } from "../services/HistorialService";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useNavigate } from "react-router-dom";
 
 export default function ConsultarHistorial() {
   const [user, setUser] = useState(null);
@@ -19,6 +20,7 @@ export default function ConsultarHistorial() {
   const [searchStatus, setSearchStatus] = useState("idle"); 
   const [patientInfo, setPatientInfo] = useState(null);
   const [medicalHistory, setMedicalHistory] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -91,7 +93,7 @@ export default function ConsultarHistorial() {
       style={{
         display: "flex",
         minHeight: "100vh",
-        background: "#f5f7fb",
+        background: "var(--bg-app)",
       }}
     >
       <Sidebar />
@@ -170,10 +172,13 @@ export default function ConsultarHistorial() {
                   <button
                     className="btn btn-danger px-4"
                     style={{
-                      backgroundColor: "#e57373",
+                      backgroundColor: "#ff0000",
                       borderColor: "#e57373",
                     }}
+                    onClick={() => navigate("/registrar-paciente")}
                   >
+                    
+                  
                     Registrar nuevo paciente
                   </button>
                 </div>

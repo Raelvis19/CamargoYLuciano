@@ -78,7 +78,7 @@ function Home() {
             style={{
                 display: "flex",
                 minHeight: "100vh",
-                background: "#f5f7fb",
+                background: "var(--bg-app)",
             }}
         >
             <Sidebar

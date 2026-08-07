@@ -123,7 +123,7 @@ function Inventario() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fb" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-app)" }}>
       <Sidebar />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>

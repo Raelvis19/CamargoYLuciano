@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTheme } from "../context/ThemeContext";
 import {
   FiSearch,
   FiBell,
@@ -11,7 +12,7 @@ import {
 import "./Topbar.css";
 
 function Topbar({ user, onMenuClick }) {
-  const [darkMode, setDarkMode] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
   const [fechaHora, setFechaHora] = useState("");
 
   useEffect(() => {
@@ -37,10 +38,6 @@ function Topbar({ user, onMenuClick }) {
     return () => clearInterval(intervalo);
   }, []);
 
-  function toggleDarkMode() {
-    setDarkMode(!darkMode);
-    document.body.classList.toggle("dark-mode");
-  }
 
   return (
     <header className="topbar">
@@ -67,9 +64,11 @@ function Topbar({ user, onMenuClick }) {
 
         <button
           className="icon-btn"
-          onClick={toggleDarkMode}
+          onClick={toggleTheme}
+          title={isDark ? "Usar modo claro" : "Usar modo oscuro"}
+          aria-label={isDark ? "Usar modo claro" : "Usar modo oscuro"}
         >
-          {darkMode ? <FiSun /> : <FiMoon />}
+          {isDark ? <FiSun /> : <FiMoon />}
         </button>
 
         <button className="icon-btn">

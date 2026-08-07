@@ -1,81 +1,40 @@
+import { FiPhone } from "react-icons/fi";
+
 function InformacionContacto({ form, handleChange }) {
   return (
-    <div className="card shadow-sm border-0 mb-4">
-      <div className="card-body p-4">
-        <h4 className="fw-bold mb-1">📞 Información de contacto</h4>
+    <section className="patient-section patient-section--contact">
+      <header className="patient-section__header">
+        <span className="patient-section__icon"><FiPhone /></span>
+        <div>
+          <h3>Información de contacto</h3>
+          <p>Medios disponibles para comunicarse con el paciente.</p>
+        </div>
+      </header>
 
-        <p className="text-muted mb-4">
-          Datos para comunicarse con el paciente.
-        </p>
-
-        <div className="row g-3">
-          {/* Teléfono */}
-          <div className="col-md-4">
-            <label className="form-label fw-semibold">
-              Teléfono *
-            </label>
-
-            <input
-              type="tel"
-              className="form-control"
-              name="telefono"
-              value={form.telefono}
-              onChange={handleChange}
-              placeholder="809-555-1234"
-              required
-            />
+      <div className="patient-section__body">
+        <div className="row g-3 g-lg-4">
+          <div className="col-md-6 col-lg-4 patient-field">
+            <label className="form-label" htmlFor="telefono">Teléfono <span className="required-mark">*</span></label>
+            <input id="telefono" type="tel" className="form-control" name="telefono" value={form.telefono} onChange={handleChange} placeholder="809-555-1234" autoComplete="tel" required />
           </div>
 
-          {/* Correo */}
-          <div className="col-md-4">
-            <label className="form-label fw-semibold">
-              Correo electrónico
-            </label>
-
-            <input
-              type="email"
-              className="form-control"
-              name="correo"
-              value={form.correo}
-              onChange={handleChange}
-              placeholder="correo@ejemplo.com"
-            />
+          <div className="col-md-6 col-lg-4 patient-field">
+            <label className="form-label" htmlFor="correo">Correo electrónico</label>
+            <input id="correo" type="email" className="form-control" name="correo" value={form.correo} onChange={handleChange} placeholder="correo@ejemplo.com" autoComplete="email" />
           </div>
 
-          {/* Carrera */}
-          <div className="col-md-4">
-            <label className="form-label fw-semibold">
-              Carrera
-            </label>
-
-            <input
-              type="text"
-              className="form-control"
-              name="carrera"
-              value={form.carrera}
-              onChange={handleChange}
-              placeholder="Ej. Ingeniería en Sistemas"
-            />
+          <div className="col-lg-4 patient-field">
+            <label className="form-label" htmlFor="carrera">Carrera</label>
+            <input id="carrera" type="text" className="form-control" name="carrera" value={form.carrera} onChange={handleChange} placeholder="Ej. Ingeniería en Sistemas" />
           </div>
 
-          {/* Dirección */}
-          <div className="col-12">
-            <label className="form-label fw-semibold">
-              Dirección
-            </label>
-
-            <textarea
-              className="form-control"
-              name="direccion"
-              value={form.direccion}
-              onChange={handleChange}
-              rows="3"
-              placeholder="Ingrese la dirección completa del paciente"
-            />
+          <div className="col-12 patient-field">
+            <label className="form-label" htmlFor="direccion">Dirección</label>
+            <textarea id="direccion" className="form-control" name="direccion" value={form.direccion} onChange={handleChange} rows="3" placeholder="Calle, sector, ciudad y referencias relevantes" autoComplete="street-address" />
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

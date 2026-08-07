@@ -1,439 +1,459 @@
-import { useState } from "react";
-import { actualizarMedicamento } from "../services/InventarioService";
+import { useEffect, useMemo, useState } from "react";
+import {
+  FiActivity,
+  FiCheckCircle,
+  FiClock,
+  FiFileText,
+  FiHeart,
+  FiPlus,
+  FiRefreshCw,
+  FiSave,
+  FiSearch,
+  FiTrash2,
+  FiUserCheck,
+} from "react-icons/fi";
+import { supabase } from "../supabase/supabaseClient";
 import Sidebar from "../components/Sidebar";
-import TopBar from "../components/Topbar";
+import Topbar from "../components/Topbar";
 import AgregarMedicamentoModal from "../components/AgregarmedicamentoModal";
 import { buscarPacientes } from "../services/BuscarPacientesService";
 import { registrarAtencion } from "../services/AtencionService";
 import { registrarDetalleAtencion } from "../services/detalle_atencion";
+import { actualizarMedicamento } from "../services/InventarioService";
+import { notify } from "../utils/notify";
+import "./AtencionMedica.css";
 
+const INITIAL_FORM = {
+  presionArterial: "",
+  temperatura: "",
+  peso: "",
+  estatura: "",
+  frecuenciaCardiaca: "",
+  motivoConsulta: "",
+  diagnostico: "",
+  indicacionesGenerales: "",
+  observaciones: "",
+};
+
+function calcularEdad(fechaNacimiento) {
+  if (!fechaNacimiento) return null;
+  const nacimiento = new Date(`${fechaNacimiento}T00:00:00`);
+  if (Number.isNaN(nacimiento.getTime())) return null;
+
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+  const diferenciaMes = hoy.getMonth() - nacimiento.getMonth();
+
+  if (
+    diferenciaMes < 0 ||
+    (diferenciaMes === 0 && hoy.getDate() < nacimiento.getDate())
+  ) {
+    edad -= 1;
+  }
+
+  return edad >= 0 ? edad : null;
+}
+
+function convertirNumero(valor) {
+  if (valor === "" || valor === null || valor === undefined) return null;
+  const numero = Number(String(valor).replace(",", "."));
+  return Number.isFinite(numero) ? numero : null;
+}
 
 export default function AtencionMedica() {
+  const [user, setUser] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [busqueda, setBusqueda] = useState("");
-
-  // Control del modal
+  const [buscando, setBuscando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
-  // Lista de medicamentos agregados
   const [medicamentos, setMedicamentos] = useState([]);
-
   const [paciente, setPaciente] = useState(null);
-  const [presionArterial, setPresionArterial] = useState("");
-  const [temperatura, setTemperatura] = useState("");
-  const [peso, setPeso] = useState("");
-  const [estatura, setEstatura] = useState("");
-  const [frecuenciaCardiaca, setFrecuenciaCardiaca] = useState("");
-  const [motivoConsulta, setMotivoConsulta] = useState("");
-  const [diagnostico, setDiagnostico] = useState("");
-  const [indicacionesGenerales, setIndicacionesGenerales] = useState("");
-  const [observaciones, setObservaciones] = useState("");
+  const [form, setForm] = useState(INITIAL_FORM);
 
-  const abrirModal = () => setShowModal(true);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
 
-  const cerrarModal = () => setShowModal(false);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
 
-  const agregarMedicamento = (nuevoMedicamento) => {
-    setMedicamentos((prev) => [...prev, nuevoMedicamento]);
-  };
+    return () => subscription.unsubscribe();
+  }, []);
 
-  const eliminarMedicamento = (index) => {
-    setMedicamentos((prev) =>
-      prev.filter((_, i) => i !== index)
-    );
-  };
+  const fechaHora = useMemo(
+    () =>
+      new Intl.DateTimeFormat("es-DO", {
+        dateStyle: "long",
+        timeStyle: "short",
+      }).format(new Date()),
+    []
+  );
 
+  const edadPaciente = useMemo(
+    () => paciente?.edad ?? calcularEdad(paciente?.fecha_nacimiento),
+    [paciente]
+  );
 
-  const handleBuscarPaciente = async () => {
-    if (!busqueda.trim()) {
-      alert("Ingrese un nombre, matrícula o cédula.");
+  function handleChange(event) {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  async function handleBuscarPaciente(event) {
+    event?.preventDefault();
+    const criterio = busqueda.trim();
+
+    if (!criterio) {
+      notify.warning("Escribe un nombre, matrícula o cédula para buscar.");
       return;
     }
 
     try {
-      const pacientes = await buscarPacientes(busqueda);
+      setBuscando(true);
+      const pacientes = await buscarPacientes(criterio);
 
-      if (pacientes.length === 0) {
-        alert("No se encontró ningún paciente.");
+      if (!pacientes?.length) {
         setPaciente(null);
+        notify.info("No se encontró ningún paciente con ese criterio.");
         return;
       }
 
-      // Por ahora seleccionamos el primer resultado
       setPaciente(pacientes[0]);
+      notify.success(`Paciente seleccionado: ${pacientes[0].nombre}.`);
     } catch (error) {
-      console.error(error);
-      alert("Error al buscar el paciente.");
+      console.error("Error al buscar paciente:", error);
+      notify.error(error?.message || "No fue posible buscar el paciente.");
+    } finally {
+      setBuscando(false);
     }
-  };
-
-const handleGuardarAtencion = async () => {
-  if (!paciente) {
-    alert("Debe buscar y seleccionar un paciente antes de registrar la atención.");
-    return;
-  }
-  if (medicamentos.length === 0) {
-    alert("Debe agregar al menos un medicamento.");
-    return;
   }
 
-  const datosAtencion = {
-    paciente_id: paciente.id,
-    presion_arterial: presionArterial,
-    temperatura: parseFloat(temperatura),
-    peso: parseFloat(peso),
-    estatura: parseFloat(estatura),
-    frecuencia_cardiaca: parseInt(frecuenciaCardiaca),
-    motivo_consulta: motivoConsulta,
-    diagnostico: diagnostico,
-    indicaciones_generales: indicacionesGenerales,
-    observaciones: observaciones,
-  };
+  function agregarMedicamento(nuevoMedicamento) {
+    setMedicamentos((current) => [...current, nuevoMedicamento]);
+  }
 
-  try {
-    // Guardar la atención médica antes de actualizar el inventario
-    const atencionGuardada = await registrarAtencion(datosAtencion);
-    const atencionId = atencionGuardada[0].id;
+  function eliminarMedicamento(index) {
+    setMedicamentos((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  }
 
-    for (const med of medicamentos) {
-      await registrarDetalleAtencion({
-        atencion_id: atencionId,
-        medicamento_id: med.medicamentoId,
-        cantidad: med.cantidad,
-        dosis: med.dosis,
-        frecuencia: med.frecuencia,
-        duracion: med.duracion,
-        indicaciones: med.indicaciones,
-      });
-      await actualizarMedicamento(med.medicamentoId, {
-        cantidad: med.stockDisponible - med.cantidad,
-      });
-    }
-
-    alert("Atención médica registrada correctamente.");
-    setPaciente(null);
-    setBusqueda("");
-    setPresionArterial("");
-    setTemperatura("");
-    setPeso("");
-    setEstatura("");
-    setFrecuenciaCardiaca("");
-    setMotivoConsulta("");
-    setDiagnostico("");
-    setIndicacionesGenerales("");
-    setObservaciones("");
+  function limpiarAtencion({ conservarPaciente = false } = {}) {
+    setForm(INITIAL_FORM);
     setMedicamentos([]);
     setShowModal(false);
-  } catch (error) {
-    console.error(error);
-    alert("Ocurrió un error al actualizar el inventario.");
+
+    if (!conservarPaciente) {
+      setBusqueda("");
+      setPaciente(null);
+    }
   }
-};
 
-  const handleCancelar = () => {
-    setMedicamentos([]);
-    setBusqueda("");
-    setPaciente(null);
-  };
+  function validarFormulario() {
+    if (!paciente) return "Selecciona un paciente antes de registrar la atención.";
+    if (!form.motivoConsulta.trim()) return "Describe el motivo de consulta.";
+    if (form.motivoConsulta.trim().length < 5) return "El motivo de consulta necesita más detalle.";
+    if (!form.diagnostico.trim()) return "Escribe el diagnóstico de la atención.";
+    if (!medicamentos.length) return "Agrega al menos un medicamento al tratamiento.";
 
-  const fechaActual = new Date().toLocaleDateString();
+    if (form.presionArterial && !/^\d{2,3}\s*\/\s*\d{2,3}$/.test(form.presionArterial.trim())) {
+      return "La presión arterial debe tener un formato como 120/80.";
+    }
 
-  const horaActual = new Date().toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+    const temperatura = convertirNumero(form.temperatura);
+    if (form.temperatura && (temperatura === null || temperatura < 30 || temperatura > 45)) {
+      return "La temperatura debe estar entre 30 y 45 °C.";
+    }
 
-return (
-  <div
-    style={{
-      display: "flex",
-      minHeight: "100vh",
-      background: "#f5f7fb",
-    }}
-  >
-    <Sidebar />
+    const peso = convertirNumero(form.peso);
+    if (form.peso && (peso === null || peso <= 0 || peso > 500)) {
+      return "Ingresa un peso válido en kilogramos.";
+    }
 
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <TopBar />
+    const estatura = convertirNumero(form.estatura);
+    if (form.estatura && (estatura === null || estatura < 0.4 || estatura > 2.8)) {
+      return "Ingresa una estatura válida en metros.";
+    }
 
-      <div className="container py-4">
-        <div className="card shadow-sm">
-          <div className="card-header">
-            <h3 className="mb-0">Registrar Atención Médica</h3>
-          </div>
+    const frecuencia = convertirNumero(form.frecuenciaCardiaca);
+    if (form.frecuenciaCardiaca && (frecuencia === null || frecuencia < 20 || frecuencia > 250)) {
+      return "Ingresa una frecuencia cardíaca válida.";
+    }
 
-          <div className="card-body">
-            {/* Buscar paciente */}
+    return null;
+  }
 
-            <div className="mb-4">
-              <label className="form-label fw-bold">Buscar paciente</label>
+  async function handleGuardarAtencion(event) {
+    event.preventDefault();
+    const mensajeValidacion = validarFormulario();
 
-              <div className="input-group">
-                <input
-                  className="form-control"
-                  type="text"
-                  placeholder="Buscar por nombre, matricula o cédula"
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                />
+    if (mensajeValidacion) {
+      notify.warning(mensajeValidacion);
+      return;
+    }
 
-                <button
-                  className="btn btn-primary"
-                  onClick={handleBuscarPaciente}
-                >
-                  Buscar
-                </button>
+    const datosAtencion = {
+      paciente_id: paciente.id,
+      presion_arterial: form.presionArterial.trim() || null,
+      temperatura: convertirNumero(form.temperatura),
+      peso: convertirNumero(form.peso),
+      estatura: convertirNumero(form.estatura),
+      frecuencia_cardiaca: convertirNumero(form.frecuenciaCardiaca),
+      motivo_consulta: form.motivoConsulta.trim(),
+      diagnostico: form.diagnostico.trim(),
+      indicaciones_generales: form.indicacionesGenerales.trim() || null,
+      observaciones: form.observaciones.trim() || null,
+    };
+
+    try {
+      setGuardando(true);
+      const resultado = await registrarAtencion(datosAtencion);
+      const atencionGuardada = Array.isArray(resultado) ? resultado[0] : resultado;
+      const atencionId = atencionGuardada?.id;
+
+      if (!atencionId) {
+        throw new Error("La atención se guardó sin devolver un identificador.");
+      }
+
+      for (const medicamento of medicamentos) {
+        await registrarDetalleAtencion({
+          atencion_id: atencionId,
+          medicamento_id: medicamento.medicamentoId,
+          cantidad: medicamento.cantidad,
+          dosis: medicamento.dosis,
+          frecuencia: medicamento.frecuencia,
+          duracion: medicamento.duracion,
+          indicaciones: medicamento.indicaciones || null,
+        });
+
+        await actualizarMedicamento(medicamento.medicamentoId, {
+          cantidad: medicamento.stockDisponible - medicamento.cantidad,
+        });
+      }
+
+      notify.success("Atención médica registrada correctamente.");
+      limpiarAtencion();
+    } catch (error) {
+      console.error("Error al registrar la atención:", error);
+      notify.error(error?.message || "No fue posible registrar la atención médica.");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  return (
+    <div className="app-container">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="main-section">
+        <Topbar user={user} onMenuClick={() => setSidebarOpen(true)} />
+
+        <main className="attention-page">
+          <div className="attention-page__content">
+            <header className="attention-page__header">
+              <div>
+                <span className="attention-page__eyebrow">
+                  <FiActivity /> Consulta clínica
+                </span>
+                <h1 className="attention-page__title">Registrar atención médica</h1>
+                <p className="attention-page__subtitle">
+                  Selecciona un paciente y documenta su evaluación, diagnóstico y tratamiento.
+                </p>
               </div>
-            </div>
 
-            {/* Datos paciente */}
+              <div className="attention-page__date">
+                <FiClock />
+                <span>{fechaHora}</span>
+              </div>
+            </header>
 
-            {paciente && (
-              <div className="card border-primary mb-4">
-                <div className="card-header bg-primary text-white">
-                  Paciente seleccionado
-                </div>
-
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col-md-4">
-                      <strong>Nombre:</strong> {paciente.nombre}
-                    </div>
-
-                    <div className="col-md-2">
-                      <strong>Edad:</strong> {paciente.edad}
-                    </div>
-
-                    <div className="col-md-3">
-                      <strong>Cédula:</strong> {paciente.cedula}
-                    </div>
-
-                    <div className="col-md-3">
-                      <strong>Seguro:</strong> {paciente.seguro}
-                    </div>
-
-                    <div className="col-md-3 mt-2">
-                      <strong>Sexo:</strong> {paciente.sexo}
-                    </div>
+            <form className="attention-form" onSubmit={handleGuardarAtencion} noValidate>
+              <section className="attention-section attention-section--search">
+                <div className="attention-section__header">
+                  <span className="attention-section__icon"><FiSearch /></span>
+                  <div>
+                    <h2>Seleccionar paciente</h2>
+                    <p>Busca por nombre, matrícula o número de cédula.</p>
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* Signos vitales */}
+                <div className="attention-section__body">
+                  <div className="attention-search">
+                    <input
+                      type="search"
+                      className="form-control"
+                      placeholder="Ej. Juan Pérez, 2023-1234 o 001-1234567-8"
+                      value={busqueda}
+                      onChange={(event) => setBusqueda(event.target.value)}
+                      disabled={buscando || guardando}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handleBuscarPaciente}
+                      disabled={buscando || guardando}
+                    >
+                      <FiSearch /> {buscando ? "Buscando..." : "Buscar paciente"}
+                    </button>
+                  </div>
 
-            <h5 className="mb-3">Signos Vitales</h5>
+                  {paciente ? (
+                    <article className="selected-patient">
+                      <div className="selected-patient__avatar"><FiUserCheck /></div>
+                      <div className="selected-patient__main">
+                        <span>Paciente seleccionado</span>
+                        <strong>{paciente.nombre}</strong>
+                        <small>{paciente.matricula || "Sin matrícula registrada"}</small>
+                      </div>
+                      <dl className="selected-patient__details">
+                        <div><dt>Edad</dt><dd>{edadPaciente !== null ? `${edadPaciente} años` : "No disponible"}</dd></div>
+                        <div><dt>Cédula</dt><dd>{paciente.cedula || "No registrada"}</dd></div>
+                        <div><dt>Sexo</dt><dd>{paciente.sexo || "No registrado"}</dd></div>
+                        <div><dt>Sangre</dt><dd>{paciente.tipo_sangre || "No registrada"}</dd></div>
+                      </dl>
+                    </article>
+                  ) : (
+                    <div className="attention-empty-state">
+                      <FiUserCheck />
+                      <div><strong>Ningún paciente seleccionado</strong><span>Realiza una búsqueda para comenzar la atención.</span></div>
+                    </div>
+                  )}
+                </div>
+              </section>
 
-            <div className="row mb-4">
-              <div className="col-md-3">
-                <label className="form-label">Presión arterial</label>
-                <input
-                  className="form-control"
-                  placeholder="120/80"
-                  value={presionArterial}
-                  onChange={(e) => setPresionArterial(e.target.value)}
-                />
-              </div>
-
-              <div className="col-md-2">
-                <label className="form-label">Temperatura</label>
-                <input
-                  className="form-control"
-                  placeholder="36.8 °C"
-                  value={temperatura}
-                  onChange={(e) => setTemperatura(e.target.value)}
-                />
-              </div>
-
-              <div className="col-md-2">
-                <label className="form-label">Peso</label>
-                <input
-                  className="form-control"
-                  placeholder="72 kg"
-                  value={peso}
-                  onChange={(e) => setPeso(e.target.value)}
-                />
-              </div>
-
-              <div className="col-md-2">
-                <label className="form-label">Estatura</label>
-                <input
-                  className="form-control"
-                  placeholder="1.75 m"
-                  value={estatura}
-                  onChange={(e) => setEstatura(e.target.value)}
-                />
-              </div>
-
-              <div className="col-md-3">
-                <label className="form-label">Frecuencia cardíaca</label>
-                <input
-                  className="form-control"
-                  placeholder="75 lpm"
-                  value={frecuenciaCardiaca}
-                  onChange={(e) => setFrecuenciaCardiaca(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Síntomas */}
-
-            <div className="mb-3">
-              <label className="form-label fw-bold">
-                Motivo de consulta / Síntomas
-              </label>
-              <textarea
-                className="form-control"
-                rows="4"
-                value={motivoConsulta}
-                onChange={(e) => setMotivoConsulta(e.target.value)}
-              />
-            </div>
-
-            {/* Diagnóstico */}
-
-            <div className="mb-3">
-              <label className="form-label fw-bold">Diagnóstico</label>
-              <textarea
-                className="form-control"
-                rows="4"
-                value={diagnostico}
-                onChange={(e) => setDiagnostico(e.target.value)}
-              />
-            </div>
-
-            {/* Tratamiento */}
-
-            <div className="card shadow-sm mb-4">
-              <div className="card-header">
-                <h5 className="mb-0">💊 Tratamiento</h5>
-              </div>
-
-              <div className="card-body">
-                <div className="mb-3">
-                  <label className="form-label fw-bold">
-                    Indicaciones generales
-                  </label>
-                  <textarea
-                    className="form-control"
-                    rows="3"
-                    value={indicacionesGenerales}
-                    onChange={(e) => setIndicacionesGenerales(e.target.value)}
-                  />
+              <section className="attention-section attention-section--vitals">
+                <div className="attention-section__header">
+                  <span className="attention-section__icon"><FiHeart /></span>
+                  <div>
+                    <h2>Signos vitales</h2>
+                    <p>Registra los valores obtenidos durante la evaluación.</p>
+                  </div>
                 </div>
 
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6 className="mb-0">Medicamentos prescritos</h6>
+                <div className="attention-section__body">
+                  <div className="attention-grid attention-grid--vitals">
+                    <label className="attention-field">
+                      <span>Presión arterial</span>
+                      <div className="attention-input-unit"><input name="presionArterial" className="form-control" placeholder="120/80" value={form.presionArterial} onChange={handleChange} /><small>mmHg</small></div>
+                    </label>
+                    <label className="attention-field">
+                      <span>Temperatura</span>
+                      <div className="attention-input-unit"><input name="temperatura" type="number" step="0.1" min="30" max="45" className="form-control" placeholder="36.8" value={form.temperatura} onChange={handleChange} /><small>°C</small></div>
+                    </label>
+                    <label className="attention-field">
+                      <span>Peso</span>
+                      <div className="attention-input-unit"><input name="peso" type="number" step="0.1" min="0" className="form-control" placeholder="72" value={form.peso} onChange={handleChange} /><small>kg</small></div>
+                    </label>
+                    <label className="attention-field">
+                      <span>Estatura</span>
+                      <div className="attention-input-unit"><input name="estatura" type="number" step="0.01" min="0" className="form-control" placeholder="1.75" value={form.estatura} onChange={handleChange} /><small>m</small></div>
+                    </label>
+                    <label className="attention-field">
+                      <span>Frecuencia cardíaca</span>
+                      <div className="attention-input-unit"><input name="frecuenciaCardiaca" type="number" min="20" max="250" className="form-control" placeholder="75" value={form.frecuenciaCardiaca} onChange={handleChange} /><small>lpm</small></div>
+                    </label>
+                  </div>
+                </div>
+              </section>
 
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={abrirModal}
-                  >
-                    + Agregar medicamento
+              <section className="attention-section attention-section--evaluation">
+                <div className="attention-section__header">
+                  <span className="attention-section__icon"><FiFileText /></span>
+                  <div>
+                    <h2>Evaluación clínica</h2>
+                    <p>Documenta el motivo de consulta y la impresión diagnóstica.</p>
+                  </div>
+                </div>
+
+                <div className="attention-section__body">
+                  <div className="attention-grid attention-grid--two">
+                    <label className="attention-field">
+                      <span>Motivo de consulta / síntomas <b>*</b></span>
+                      <textarea name="motivoConsulta" className="form-control" rows="5" placeholder="Describe los síntomas, cuándo iniciaron y su evolución..." value={form.motivoConsulta} onChange={handleChange} />
+                    </label>
+                    <label className="attention-field">
+                      <span>Diagnóstico <b>*</b></span>
+                      <textarea name="diagnostico" className="form-control" rows="5" placeholder="Escribe el diagnóstico o impresión clínica..." value={form.diagnostico} onChange={handleChange} />
+                    </label>
+                  </div>
+                </div>
+              </section>
+
+              <section className="attention-section attention-section--treatment">
+                <div className="attention-section__header attention-section__header--actions">
+                  <div className="attention-section__heading">
+                    <span className="attention-section__icon"><FiPlus /></span>
+                    <div>
+                      <h2>Tratamiento</h2>
+                      <p>Agrega medicamentos e indicaciones para el paciente.</p>
+                    </div>
+                  </div>
+                  <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowModal(true)} disabled={guardando}>
+                    <FiPlus /> Agregar medicamento
                   </button>
                 </div>
 
-                <div className="table-responsive">
-                  <table className="table table-bordered table-hover align-middle">
-                    <thead className="table-light">
-                      <tr>
-                        <th>Medicamento</th>
-                        <th>Dosis</th>
-                        <th>Frecuencia</th>
-                        <th>Duración</th>
-                        <th>Cantidad</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
+                <div className="attention-section__body">
+                  <label className="attention-field attention-field--full">
+                    <span>Indicaciones generales</span>
+                    <textarea name="indicacionesGenerales" className="form-control" rows="3" placeholder="Reposo, hidratación, alimentación u otras recomendaciones..." value={form.indicacionesGenerales} onChange={handleChange} />
+                  </label>
 
-                    <tbody>
-                      {medicamentos.length === 0 ? (
-                        <tr>
-                          <td colSpan={6} className="text-center text-muted">
-                            No hay medicamentos agregados.
-                          </td>
-                        </tr>
-                      ) : (
-                        medicamentos.map((med, index) => (
-                          <tr key={index}>
-                            <td>{med.medicamento}</td>
-                            <td>{med.dosis}</td>
-                            <td>{med.frecuencia}</td>
-                            <td>{med.duracion}</td>
-                            <td>{med.cantidad}</td>
+                  <div className="attention-table-wrap">
+                    <table className="attention-table">
+                      <thead><tr><th>Medicamento</th><th>Dosis</th><th>Frecuencia</th><th>Duración</th><th>Cantidad</th><th aria-label="Acciones" /></tr></thead>
+                      <tbody>
+                        {medicamentos.length === 0 ? (
+                          <tr><td colSpan="6"><div className="attention-table__empty"><FiPlus /><span>No hay medicamentos agregados.</span></div></td></tr>
+                        ) : (
+                          medicamentos.map((medicamento, index) => (
+                            <tr key={`${medicamento.medicamentoId}-${index}`}>
+                              <td><strong>{medicamento.medicamento}</strong>{medicamento.indicaciones && <small>{medicamento.indicaciones}</small>}</td>
+                              <td>{medicamento.dosis}</td><td>{medicamento.frecuencia}</td><td>{medicamento.duracion}</td><td>{medicamento.cantidad}</td>
+                              <td className="attention-table__actions"><button type="button" className="attention-delete-btn" onClick={() => eliminarMedicamento(index)} aria-label={`Eliminar ${medicamento.medicamento}`}><FiTrash2 /></button></td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
 
-                            <td>
-                              <button
-                                className="btn btn-danger btn-sm"
-                                onClick={() => eliminarMedicamento(index)}
-                              >
-                                Eliminar
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+              <section className="attention-section attention-section--notes">
+                <div className="attention-section__header">
+                  <span className="attention-section__icon"><FiFileText /></span>
+                  <div><h2>Observaciones</h2><p>Registra cualquier información adicional relevante.</p></div>
+                </div>
+                <div className="attention-section__body">
+                  <label className="attention-field attention-field--full">
+                    <span>Observaciones adicionales</span>
+                    <textarea name="observaciones" className="form-control" rows="4" placeholder="Notas complementarias de la atención..." value={form.observaciones} onChange={handleChange} />
+                  </label>
+                </div>
+              </section>
+
+              <div className="attention-form__actions">
+                <div className="attention-form__actions-text">
+                  <strong><FiCheckCircle /> Revisión final</strong>
+                  <span>Verifica el paciente, diagnóstico y tratamiento antes de guardar.</span>
+                </div>
+                <div className="attention-form__buttons">
+                  <button type="button" className="btn btn-outline-secondary" onClick={() => limpiarAtencion()} disabled={guardando}>
+                    <FiRefreshCw /> Limpiar
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={guardando}>
+                    <FiSave /> {guardando ? "Guardando..." : "Guardar atención"}
+                  </button>
                 </div>
               </div>
-            </div>
-
-            {/* Observaciones */}
-
-            <div className="mb-4">
-              <label className="form-label fw-bold">
-                Observaciones adicionales
-              </label>
-              <textarea
-                className="form-control"
-                rows="3"
-                value={observaciones}
-                onChange={(e) => setObservaciones(e.target.value)}
-              />
-            </div>
-
-            {/* Fecha */}
-
-            <div className="alert alert-light border">
-              <strong>Fecha:</strong> {fechaActual}
-              <br />
-              <strong>Hora:</strong> {horaActual}
-            </div>
-
-            {/* Botones */}
-
-            <div className="d-flex justify-content-end gap-2">
-              <button
-                className="btn btn-outline-secondary"
-                onClick={handleCancelar}
-              >
-                Cancelar
-              </button>
-
-              <button
-                className="btn btn-success"
-                onClick={handleGuardarAtencion}
-              >
-                Guardar Atención
-              </button>
-            </div>
+            </form>
           </div>
-        </div>
+        </main>
       </div>
-    </div>
 
-    <AgregarMedicamentoModal
-      show={showModal}
-      handleClose={cerrarModal}
-      onAgregar={agregarMedicamento}
-    />
-  </div>
-);
+      <AgregarMedicamentoModal show={showModal} handleClose={() => setShowModal(false)} onAgregar={agregarMedicamento} />
+    </div>
+  );
 }
