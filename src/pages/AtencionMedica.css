@@ -1,0 +1,114 @@
+.attention-page {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  padding: 28px 32px 110px;
+  box-sizing: border-box;
+}
+
+.attention-page__content { width: 100%; max-width: 1480px; margin: 0 auto; }
+.attention-page__header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
+.attention-page__eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--primary); font-size: .76rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.attention-page__title { margin: 0; color: var(--text-primary); font-size: clamp(1.65rem, 2.4vw, 2.15rem); font-weight: 800; letter-spacing: -.035em; }
+.attention-page__subtitle { max-width: 720px; margin: 8px 0 0; color: var(--text-muted); }
+.attention-page__date { display: inline-flex; align-items: center; gap: 9px; flex: 0 0 auto; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 13px; background: var(--surface); color: var(--text-secondary); font-size: .8rem; box-shadow: 0 8px 22px rgba(24,45,78,.055); }
+
+.attention-form { display: flex; flex-direction: column; gap: 18px; }
+.attention-section { --section-accent: var(--primary); overflow: hidden; border: 1px solid var(--border-color); border-radius: 20px; background: var(--surface); box-shadow: 0 10px 30px rgba(24,45,78,.065); transition: border-color .2s ease, box-shadow .2s ease; }
+.attention-section:hover { border-color: color-mix(in srgb, var(--section-accent) 26%, var(--border-color)); box-shadow: 0 16px 38px rgba(24,45,78,.09); }
+.attention-section--search { --section-accent: #2563eb; }
+.attention-section--vitals { --section-accent: #df3f86; }
+.attention-section--evaluation { --section-accent: #5b49b7; }
+.attention-section--treatment { --section-accent: #15966f; }
+.attention-section--notes { --section-accent: #d97706; }
+.attention-section__header { display: flex; align-items: center; gap: 14px; padding: 20px 22px 16px; border-bottom: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent); background: linear-gradient(180deg, color-mix(in srgb, var(--surface-soft) 78%, transparent), transparent); }
+.attention-section__header--actions { justify-content: space-between; gap: 18px; }
+.attention-section__heading { display: flex; align-items: center; gap: 14px; }
+.attention-section__icon { display: grid; flex: 0 0 42px; width: 42px; height: 42px; place-items: center; border-radius: 13px; background: color-mix(in srgb, var(--section-accent) 13%, var(--surface)); color: var(--section-accent); font-size: 1.15rem; }
+.attention-section__header h2 { margin: 0; color: var(--text-primary); font-size: 1.06rem; font-weight: 800; letter-spacing: -.015em; }
+.attention-section__header p { margin: 3px 0 0; color: var(--text-muted); font-size: .84rem; }
+.attention-section__header .btn { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; border-radius: 11px; padding-inline: 15px; }
+.attention-section__body { padding: 22px; }
+
+.attention-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+.attention-search .form-control { min-height: 48px; border-radius: 12px; }
+.attention-search .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 164px; border-radius: 12px; }
+
+.selected-patient { display: grid; grid-template-columns: auto minmax(180px, .8fr) minmax(0, 2fr); align-items: center; gap: 16px; margin-top: 18px; padding: 17px 18px; border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border-color)); border-radius: 16px; background: color-mix(in srgb, var(--primary) 5%, var(--surface)); }
+.selected-patient__avatar { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 15px; background: color-mix(in srgb, var(--primary) 14%, var(--surface)); color: var(--primary); font-size: 1.35rem; }
+.selected-patient__main span, .selected-patient__main small { display: block; color: var(--text-muted); font-size: .75rem; }
+.selected-patient__main strong { display: block; margin: 2px 0; color: var(--text-primary); font-size: 1rem; }
+.selected-patient__details { display: grid; grid-template-columns: repeat(4, minmax(100px, 1fr)); gap: 10px; margin: 0; }
+.selected-patient__details div { min-width: 0; padding-left: 13px; border-left: 1px solid var(--border-color); }
+.selected-patient__details dt { color: var(--text-muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.selected-patient__details dd { overflow: hidden; margin: 3px 0 0; color: var(--text-primary); font-size: .84rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.attention-empty-state { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 14px 16px; border: 1px dashed var(--border-color); border-radius: 14px; color: var(--text-muted); }
+.attention-empty-state > svg { flex: 0 0 auto; font-size: 1.3rem; }
+.attention-empty-state strong, .attention-empty-state span { display: block; }
+.attention-empty-state strong { color: var(--text-secondary); font-size: .86rem; }
+.attention-empty-state span { margin-top: 2px; font-size: .76rem; }
+
+.attention-grid { display: grid; gap: 18px; }
+.attention-grid--vitals { grid-template-columns: repeat(5, minmax(130px, 1fr)); }
+.attention-grid--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.attention-field { display: block; min-width: 0; }
+.attention-field > span { display: block; margin-bottom: 7px; color: var(--text-secondary); font-size: .82rem; font-weight: 750; }
+.attention-field > span b { color: #e05252; }
+.attention-field .form-control, .attention-field .form-select { min-height: 48px; border-radius: 12px; border-width: 1px; padding-inline: 14px; font-size: .92rem; }
+.attention-field textarea.form-control { min-height: 105px; padding-top: 12px; resize: vertical; }
+.attention-field .form-control:hover { border-color: color-mix(in srgb, var(--primary) 35%, var(--border-color)) !important; }
+.attention-field--full { width: 100%; }
+.attention-input-unit { position: relative; }
+.attention-input-unit .form-control { padding-right: 58px; }
+.attention-input-unit small { position: absolute; top: 50%; right: 13px; transform: translateY(-50%); color: var(--text-subtle); font-size: .72rem; font-weight: 700; pointer-events: none; }
+
+.attention-table-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--border-color); border-radius: 15px; }
+.attention-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+.attention-table th { padding: 12px 14px; background: var(--surface-soft); color: var(--text-muted); font-size: .72rem; font-weight: 800; letter-spacing: .045em; text-transform: uppercase; }
+.attention-table td { padding: 13px 14px; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-size: .84rem; vertical-align: middle; }
+.attention-table td strong, .attention-table td small { display: block; }
+.attention-table td strong { color: var(--text-primary); }
+.attention-table td small { margin-top: 3px; color: var(--text-muted); }
+.attention-table__actions { width: 54px; text-align: right; }
+.attention-delete-btn { display: inline-grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 10px; background: color-mix(in srgb, #dc3545 11%, var(--surface)); color: #dc3545; transition: transform .15s ease, background .15s ease; }
+.attention-delete-btn:hover { transform: translateY(-1px); background: color-mix(in srgb, #dc3545 18%, var(--surface)); }
+.attention-table__empty { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 18px; color: var(--text-muted); }
+
+.attention-form__actions { position: sticky; bottom: 14px; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 18px; width: 100%; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--border-color) 90%, transparent); border-radius: 17px; background: color-mix(in srgb, var(--surface) 94%, transparent); box-shadow: 0 14px 38px rgba(15,30,52,.16); backdrop-filter: blur(14px); }
+.attention-form__actions-text strong { display: flex; align-items: center; gap: 7px; color: var(--text-primary); font-size: .88rem; }
+.attention-form__actions-text span { display: block; margin-top: 2px; color: var(--text-muted); font-size: .76rem; }
+.attention-form__buttons { display: flex; gap: 10px; }
+.attention-form__buttons .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; }
+.attention-form__buttons .btn-primary { box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 24%, transparent); }
+
+@media (max-width: 1200px) {
+  .attention-grid--vitals { grid-template-columns: repeat(3, minmax(150px, 1fr)); }
+  .selected-patient { grid-template-columns: auto minmax(180px, 1fr); }
+  .selected-patient__details { grid-column: 1 / -1; }
+}
+
+@media (max-width: 850px) {
+  .attention-page__header { align-items: flex-start; flex-direction: column; }
+  .attention-grid--vitals, .attention-grid--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .selected-patient__details { grid-template-columns: repeat(2, minmax(100px, 1fr)); }
+}
+
+@media (max-width: 767px) {
+  .attention-page { padding: 20px 16px 36px; }
+  .attention-section__header, .attention-section__body { padding-inline: 17px; }
+  .attention-section__header--actions { align-items: stretch; flex-direction: column; }
+  .attention-section__header--actions .btn { width: 100%; }
+  .attention-search { grid-template-columns: 1fr; }
+  .attention-search .btn { width: 100%; }
+  .attention-form__actions { position: static; align-items: stretch; flex-direction: column; }
+  .attention-form__buttons { width: 100%; }
+  .attention-form__buttons .btn { flex: 1; }
+}
+
+@media (max-width: 560px) {
+  .attention-grid--vitals, .attention-grid--two { grid-template-columns: 1fr; }
+  .selected-patient { grid-template-columns: auto minmax(0, 1fr); }
+  .selected-patient__details { grid-template-columns: 1fr; }
+  .selected-patient__details div { padding: 8px 0 0; border-top: 1px solid var(--border-color); border-left: 0; }
+  .attention-form__buttons { flex-direction: column-reverse; }
+}

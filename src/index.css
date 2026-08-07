@@ -1,127 +1,219 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+:root{
+  --bg-app:#f3f6fb;
+  --surface:#ffffff;
+  --surface-elevated:#ffffff;
+  --surface-soft:#f8fafc;
+  --input-bg:#ffffff;
+  --text-primary:#172033;
+  --text-secondary:#42506a;
+  --text-muted:#6f7b91;
+  --text-subtle:#9aa4b5;
+  --border-color:#dde4ee;
+  --primary:#2166d1;
+  --primary-hover:#174fa9;
+  --shadow-soft:0 12px 32px rgba(26,43,71,.08);
+  --sidebar-bg:#0d2759;
+  --sidebar-text:#dbe8ff;
+  --topbar-bg:rgba(255,255,255,.92);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:var(--text-primary);
+  background:var(--bg-app);
+  font-synthesis:none;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+:root[data-theme="dark"]{
+  --bg-app:#0c1321;
+  --surface:#121b2b;
+  --surface-elevated:#162235;
+  --surface-soft:#0f1827;
+  --input-bg:#101a2a;
+  --text-primary:#f1f5fb;
+  --text-secondary:#c6d0df;
+  --text-muted:#94a3b8;
+  --text-subtle:#68778e;
+  --border-color:#29384d;
+  --primary:#5b92f5;
+  --primary-hover:#78a7ff;
+  --shadow-soft:0 16px 38px rgba(0,0,0,.28);
+  --sidebar-bg:#08162f;
+  --sidebar-text:#d9e6ff;
+  --topbar-bg:rgba(18,27,43,.94);
 }
 
-body {
-  margin: 0;
+*{box-sizing:border-box}
+html,body,#root{width:100%;min-height:100%;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg-app);color:var(--text-primary);transition:background-color .2s ease,color .2s ease}
+a{color:var(--primary)}
+button,input,select,textarea{font:inherit}
+h1,h2,h3,h4,h5,h6{color:var(--text-primary)}
+.text-muted{color:var(--text-muted)!important}
+.bg-light{background:var(--surface-elevated)!important}
+.card,.modal-content,.dropdown-menu,.list-group-item{background:var(--surface)!important;color:var(--text-primary)!important;border-color:var(--border-color)!important}
+.card{border-radius:18px!important;box-shadow:var(--shadow-soft)!important}
+.table{--bs-table-bg:transparent;--bs-table-color:var(--text-primary);--bs-table-border-color:var(--border-color)}
+.table-light{--bs-table-bg:var(--surface-soft);--bs-table-color:var(--text-primary)}
+.form-control,.form-select{background-color:var(--input-bg)!important;color:var(--text-primary)!important;border-color:var(--border-color)!important;border-radius:12px;min-height:46px}
+.form-control::placeholder{color:var(--text-subtle)}
+.form-control:focus,.form-select:focus{border-color:var(--primary)!important;box-shadow:0 0 0 .2rem color-mix(in srgb,var(--primary) 18%,transparent)!important}
+.btn{border-radius:11px;font-weight:650}.btn-primary{background:var(--primary);border-color:var(--primary)}.btn-primary:hover{background:var(--primary-hover);border-color:var(--primary-hover)}
+.modal-header,.modal-footer{border-color:var(--border-color)!important}
+
+:root{
+  --sidebar-width:270px;
+  --topbar-height:80px;
+  --page-max-width:1480px;
 }
 
-html,
-body,
-
-#root {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
+.app-container{
+  display:flex;
+  width:100%;
+  min-height:100vh;
+  background:var(--bg-app);
+  overflow-x:clip;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+/*
+ * El sidebar es sticky y participa en el flujo. Por eso el contenido NO debe
+ * tener margin-left. Antes se reservaba el ancho dos veces y las páginas se
+ * desplazaban hacia la derecha.
+ */
+.main-section,
+.app-container > .sidebar + div{
+  flex:1 1 auto;
+  min-width:0;
+  width:auto;
+  margin-left:0;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+.page-content{
+  flex:1 1 auto;
+  min-width:0;
+  width:100%;
+  padding:0;
+  overflow:visible;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+/* Marco visual común para las pantallas internas existentes. */
+.page-content > main,
+.main-section > main,
+.app-container > .sidebar + div > main,
+.app-container > .d-print-none + div > main{
+  flex:1 1 auto;
+  min-width:0;
+  width:100%;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+main.container-fluid.py-4.px-4{
+  width:100%;
+  max-width:var(--page-max-width);
+  margin:0 auto;
+  padding:30px 32px 48px!important;
 }
 
-@media print {
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  .d-print-none {
-    display: none !important;
-  }
-
-  .d-none.d-print-block {
-    display: block !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 20px !important;
-  }
+main.container-fluid.py-4.px-4 > .mb-4:first-child{
+  margin-bottom:22px!important;
 }
+
+main.container-fluid.py-4.px-4 > .mb-4:first-child h2{
+  margin:0;
+  font-size:clamp(1.55rem,2.25vw,2.05rem);
+  font-weight:800!important;
+  letter-spacing:-.035em;
+}
+
+main.container-fluid.py-4.px-4 > .mb-4:first-child p{
+  max-width:760px;
+  margin:.55rem 0 0!important;
+  color:var(--text-muted)!important;
+}
+
+/* Tarjetas y formularios consistentes en todas las pantallas. */
+.page-content .card,
+.main-section .card,
+.app-container > .sidebar + div .card{
+  border:1px solid var(--border-color)!important;
+  border-radius:18px!important;
+  background:var(--surface)!important;
+  box-shadow:0 10px 30px rgba(24,45,78,.065)!important;
+}
+
+.page-content .card:hover,
+.main-section .card:hover,
+.app-container > .sidebar + div .card:hover{
+  border-color:color-mix(in srgb,var(--primary) 22%,var(--border-color))!important;
+}
+
+.page-content .form-label,
+.main-section .form-label,
+.app-container > .sidebar + div .form-label{
+  color:var(--text-secondary);
+  font-size:.84rem;
+  font-weight:700;
+}
+
+.page-content .form-control,
+.page-content .form-select,
+.main-section .form-control,
+.main-section .form-select,
+.app-container > .sidebar + div .form-control,
+.app-container > .sidebar + div .form-select{
+  min-height:47px;
+  border-radius:12px;
+}
+
+.page-content textarea.form-control,
+.main-section textarea.form-control,
+.app-container > .sidebar + div textarea.form-control{
+  min-height:96px;
+  resize:vertical;
+}
+
+.page-content .table-responsive,
+.main-section .table-responsive,
+.app-container > .sidebar + div .table-responsive{
+  border-radius:14px;
+}
+
+.page-content .table > :not(caption) > * > *,
+.main-section .table > :not(caption) > * > *,
+.app-container > .sidebar + div .table > :not(caption) > * > *{
+  padding:.9rem 1rem;
+  vertical-align:middle;
+}
+
+.page-content .table thead th,
+.main-section .table thead th,
+.app-container > .sidebar + div .table thead th{
+  color:var(--text-secondary);
+  font-size:.75rem;
+  font-weight:800;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+}
+
+.page-content .btn,
+.main-section .btn,
+.app-container > .sidebar + div .btn{
+  min-height:42px;
+}
+
+.page-content>*,main{animation:page-in .2s ease-out}
+@keyframes page-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+@media(max-width:900px){
+  :root{--topbar-height:72px}
+  .main-section,.app-container > .sidebar + div{width:100%;margin-left:0}
+  main.container-fluid.py-4.px-4{padding:22px 18px 38px!important}
+}
+
+@media(max-width:575px){
+  main.container-fluid.py-4.px-4{padding:18px 14px 32px!important}
+  .page-content .card-body,.main-section .card-body{padding:1rem!important}
+}
+
+@media print{body{background:#fff!important;color:#000!important}.d-print-none{display:none!important}.d-none.d-print-block{display:block!important;width:100%!important;margin:0!important;padding:20px!important}}

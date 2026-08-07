@@ -1,6 +1,7 @@
 import { useState,useEffect } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
-import {obtenerInventario} from "../services/inventarioService";
+import { obtenerInventario } from "../services/InventarioService";
+import { notify } from "../utils/notify";
 
 
 export default function AgregarMedicamentoModal({
@@ -44,10 +45,11 @@ export default function AgregarMedicamentoModal({
   };
 
   const agregarMedicamento = () => {
-    if (!medicamento) return;
+    if (!medicamento) { notify.warning("Selecciona un medicamento."); return; }
+    if (!dosis.trim() || !frecuencia.trim() || !duracion.trim()) { notify.warning("Completa la dosis, frecuencia y duración."); return; }
 
     if (!cantidad || parseInt(cantidad) <= 0) {
-      alert("Ingrese una cantidad válida.");
+      notify.warning("Ingrese una cantidad válida.");
       return;
     }
 
@@ -55,9 +57,7 @@ export default function AgregarMedicamentoModal({
       medicamentoSeleccionado &&
       parseInt(cantidad) > medicamentoSeleccionado.cantidad
     ) {
-      alert(
-        `Solo hay ${medicamentoSeleccionado.cantidad} unidades disponibles en inventario.`
-      );
+      notify.warning(`Solo hay ${medicamentoSeleccionado.cantidad} unidades disponibles en inventario.`);
       return;
     }
 

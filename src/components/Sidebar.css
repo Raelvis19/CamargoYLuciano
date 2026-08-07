@@ -1,5 +1,6 @@
 .sidebar {
-  width: 270px;
+  flex: 0 0 var(--sidebar-width, 270px);
+  width: var(--sidebar-width, 270px);
   height: 100vh;
   background: #ffffff;
   border-right: 1px solid #e9ecef;
@@ -15,6 +16,7 @@
   /* Agrega estas 3 líneas clave: */
   position: sticky;
   top: 0;
+  z-index: 1100;
   height: 100vh; /* Obliga a que mida exactamente el 100% de la altura de la pantalla */
   overflow-y: auto; /* Agrega scroll solo al menú por si en el futuro tienes muchos botones */
 
@@ -123,7 +125,7 @@
   .sidebar {
     position: fixed;
     top: 0;
-    left: -270px; /* oculto */
+    left: calc(-1 * var(--sidebar-width, 270px)); /* oculto */
     z-index: 1000;
     transition: left 0.3s ease;
   }
@@ -132,3 +134,14 @@
     left: 0; /* visible */
   }
 }
+/* Tema unificado */
+.sidebar{background:var(--sidebar-bg)!important;color:var(--sidebar-text)!important;box-shadow:10px 0 30px rgba(4,15,35,.08)}
+.sidebar a,.sidebar .nav-link{color:var(--sidebar-text)!important}
+.sidebar a:hover,.sidebar .nav-link:hover,.sidebar a.active,.sidebar .nav-link.active{background:rgba(255,255,255,.11)!important;color:#fff!important}
+
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:99px}
+.sidebar-header{min-height:58px}
+.menu-item{min-height:46px;font-weight:600}
+.menu-item:focus-visible,.logout-btn:focus-visible{outline:3px solid rgba(91,146,245,.38);outline-offset:2px}
+@media(max-width:768px){.sidebar{box-shadow:18px 0 45px rgba(0,0,0,.28)}}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
+import { notify } from "../utils/notify";
 
 export default function AgregarInventarioModal({ show, handleClose, onGuardar, medicamentoEditar }) {
   const [codigo, setCodigo] = useState("");
@@ -29,23 +30,35 @@ export default function AgregarInventarioModal({ show, handleClose, onGuardar, m
   }, [medicamentoEditar, show]);
 
   const handleSubmit = () => {
-    if (!nombre || !codigo || !cantidad || !puntoReorden) {
-      alert(
-        "Por favor complete los campos obligatorios (Codigo, Nombre, Cantidad y Punto de reorden).",
-      );
+    const cantidadNumero = Number(cantidad);
+    const reordenNumero = Number(puntoReorden);
+    if (!codigo.trim() || !nombre.trim()) {
+      notify.warning("Completa el código y el nombre del medicamento.");
+      return;
+    }
+    if (!Number.isInteger(cantidadNumero) || cantidadNumero < 0) {
+      notify.warning("La cantidad debe ser un número entero igual o mayor que cero.");
+      return;
+    }
+    if (!Number.isInteger(reordenNumero) || reordenNumero < 0) {
+      notify.warning("El punto de reorden debe ser un número entero válido.");
+      return;
+    }
+    if (fechaVencimiento && new Date(fechaVencimiento) < new Date(new Date().toDateString())) {
+      notify.warning("La fecha de vencimiento no puede estar en el pasado.");
       return;
     }
 
     const datosMedicamento = {
       codigo,
       nombre,
-      cantidad: parseInt(cantidad),
-      punto_reorden: parseInt(puntoReorden),
+      cantidad: cantidadNumero,
+      punto_reorden: reordenNumero,
       fecha_vencimiento: fechaVencimiento || null,
       estado:
-        parseInt(cantidad) < parseInt(puntoReorden)
+        cantidadNumero < reordenNumero
           ? "A punto de agotarse"
-          : parseInt(cantidad) === parseInt(puntoReorden)
+          : cantidadNumero === reordenNumero
             ? "Reorden"
             : "Stock normal",
     };

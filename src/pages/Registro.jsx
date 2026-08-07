@@ -1,164 +1,79 @@
-
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FiEye, FiEyeOff, FiLock, FiMail, FiUser } from "react-icons/fi";
 import { supabase } from "../supabase/supabaseClient";
-import { useNavigate, Link } from "react-router-dom";
+import { emailRegex, validatePassword } from "../utils/validators";
 import logo from "../assets/Logo.png";
 import "../Login.css";
 
 function Registro() {
   const navigate = useNavigate();
-
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmarPassword, setConfirmarPassword] = useState("");
+  const [form, setForm] = useState({ nombre: "", email: "", password: "", confirmarPassword: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  async function handleRegistro(e) {
-    e.preventDefault();
+  const update = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: "", general: "" }));
+  };
 
-    if (password !== confirmarPassword) {
-      alert("Las contraseñas no coinciden");
-      return;
-    }
+  async function handleRegistro(event) {
+    event.preventDefault();
+    const nextErrors = {};
+    const nombre = form.nombre.trim();
+    const email = form.email.trim().toLowerCase();
+    if (nombre.length < 3) nextErrors.nombre = "Escribe tu nombre completo.";
+    if (!emailRegex.test(email)) nextErrors.email = "Escribe un correo electrónico válido.";
+    const passwordError = validatePassword(form.password);
+    if (passwordError) nextErrors.password = passwordError;
+    if (form.password !== form.confirmarPassword) nextErrors.confirmarPassword = "Las contraseñas no coinciden.";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
 
     setLoading(true);
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          nombre: nombre,
-        },
-      },
-    });
-
-    setLoading(false);
-
-    if (error) {
-      alert(error.message);
-      return;
+    try {
+      const { error } = await supabase.auth.signUp({ email, password: form.password, options: { data: { nombre } } });
+      if (error) throw error;
+      navigate("/", { replace: true, state: { message: "Cuenta creada. Revisa tu correo si la confirmación está habilitada." } });
+    } catch (error) {
+      setErrors({ general: error?.message || "No fue posible crear la cuenta." });
+    } finally {
+      setLoading(false);
     }
-
-    alert("Usuario registrado correctamente.");
-
-    console.log(data);
-
-    navigate("/");
   }
 
   return (
-    <div className="login-bg d-flex justify-content-center align-items-center">
-      <div className="login-card shadow-lg overflow-hidden">
-        <div className="row g-0">
-
-          <div className="col-lg-6 d-none d-lg-flex login-left">
-            <div className="text-center">
-              <img
-                src={logo}
-                alt="Logo"
-                className="login-logo mb-4"
-              />
-
-              <h1 className="text-white fw-bold">
-                Crear Cuenta
-              </h1>
-
-              <p className="text-light">
-                Regístrate para acceder al sistema.
-              </p>
-            </div>
+    <div className="login-bg">
+      <div className="auth-shell">
+        <section className="auth-brand-panel compact">
+          <img src={logo} alt="Universidad Católica Nordestana" className="login-logo" />
+          <div><span className="auth-eyebrow">Únete al sistema</span><h1>Crea tu cuenta</h1><p>Accede a las herramientas de gestión clínica y académica.</p></div>
+          <small>Universidad Católica Nordestana</small>
+        </section>
+        <section className="auth-form-panel">
+          <div className="auth-form-container">
+            <span className="auth-eyebrow text-primary">Nuevo usuario</span><h2>Registro</h2><p className="auth-subtitle">Completa tus datos para crear una cuenta.</p>
+            {errors.general && <div className="inline-message error">{errors.general}</div>}
+            <form onSubmit={handleRegistro} noValidate>
+              <AuthField icon={<FiUser />} label="Nombre completo" value={form.nombre} onChange={(v) => update("nombre", v)} error={errors.nombre} autoComplete="name" />
+              <AuthField icon={<FiMail />} label="Correo electrónico" type="email" value={form.email} onChange={(v) => update("email", v)} error={errors.email} autoComplete="email" />
+              <AuthField icon={<FiLock />} label="Contraseña" type={showPassword ? "text" : "password"} value={form.password} onChange={(v) => update("password", v)} error={errors.password} autoComplete="new-password" action={<button type="button" className="password-toggle" onClick={() => setShowPassword((v) => !v)}>{showPassword ? <FiEyeOff /> : <FiEye />}</button>} />
+              <AuthField icon={<FiLock />} label="Confirmar contraseña" type={showPassword ? "text" : "password"} value={form.confirmarPassword} onChange={(v) => update("confirmarPassword", v)} error={errors.confirmarPassword} autoComplete="new-password" />
+              <div className="password-hint">Usa 8 caracteres o más, con mayúscula, minúscula y número.</div>
+              <button type="submit" className="auth-primary-btn" disabled={loading}>{loading ? <><span className="button-spinner" /> Creando cuenta...</> : "Crear cuenta"}</button>
+            </form>
+            <p className="auth-switch">¿Ya tienes una cuenta? <Link to="/">Iniciar sesión</Link></p>
           </div>
-
-          <div className="col-lg-6 bg-light">
-            <div className="login-form-container">
-
-              <h2 className="fw-bold mb-4">
-                Registro
-              </h2>
-
-              <form onSubmit={handleRegistro}>
-
-                <div className="mb-3">
-                  <label className="form-label">
-                    Nombre
-                  </label>
-
-                  <input
-                    className="form-control"
-                    type="text"
-                    value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">
-                    Correo electrónico
-                  </label>
-
-                  <input
-                    className="form-control"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">
-                    Contraseña
-                  </label>
-
-                  <input
-                    className="form-control"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label className="form-label">
-                    Confirmar contraseña
-                  </label>
-
-                  <input
-                    className="form-control"
-                    type="password"
-                    value={confirmarPassword}
-                    onChange={(e) => setConfirmarPassword(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn btn-success w-100"
-                  disabled={loading}
-                >
-                  {loading ? "Registrando..." : "Crear cuenta"}
-                </button>
-
-              </form>
-
-              <div className="text-center mt-4">
-                <Link to="/">
-                  ¿Ya tienes cuenta? Inicia sesión
-                </Link>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
+        </section>
       </div>
     </div>
   );
+}
+
+function AuthField({ icon, label, type = "text", value, onChange, error, autoComplete, action }) {
+  const id = label.toLowerCase().replaceAll(" ", "-");
+  return <div className="form-field"><label htmlFor={id}>{label}</label><div className={`input-with-icon ${error ? "is-invalid" : ""}`}>{icon}<input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete} />{action}</div>{error && <small className="field-error">{error}</small>}</div>;
 }
 
 export default Registro;
